@@ -16,5 +16,10 @@ matrix * add(matrix * a,matrix * b);
 
 typedef matrix * (*ptr_func)(matrix *, matrix *);
 
+void printMatrix(matrix * a);
+
+void createMatrix(int size, char name,matrix * novo);
+
 #endif
+
 
