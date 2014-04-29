@@ -20,6 +20,10 @@ void printMatrix(matrix * a);
 
 void createMatrix(int size, char name,matrix * novo);
 
+int findMatrix(matrix * *matrices,int nMatrix, char letra);
+
+
+
 #endif
 
 

@@ -15,7 +15,11 @@ main()
 	FILE *file = fopen( ruta, "r" );
 	matrix **matrices;
 	matrices = read(file, &nMatris);
-	mult(matrices[0],matrices[1]);
+	fclose(file);
+	int o = findMatrix(matrices,nMatris,'B');
+	printf("%d  \n",o);
+
+
 
 
 
