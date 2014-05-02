@@ -6,20 +6,55 @@
  */
 #include <stdio.h>
 #include "matrix.h"
-#include "operations.h"
+#include "display.h"
 
-main()
+
+int file_exists(const char * filename)
 {
+	FILE * file = fopen(filename, "r");
+    if (file!=NULL)
+    {
+        fclose(file);
+        return 1;
+    }
+    return -1;
+}
+
+int main(int argc, char *argv[])
+{
+
+	char location[] = "instructions.lp";
+	char *ruta;
+
+	if(argc>1)
+	{
+		if( file_exists(argv[1]) != -1 )
+		{
+		    ruta = argv[1];
+		} else {
+			ruta = "matrices.lp";
+		    printf("Archivo no valido, utilizando archivo predeterminado\n");
+		}
+
+	}else
+	{
+		ruta = "matrices.lp";
+	}
+
 	int nMatris;
-	char *ruta = "matrices.lp"; /*TODO reemplazar despues para permitir pasar este argumento por consola*/
 	FILE *file = fopen( ruta, "r" );
 	matrix **matrices;
 	matrices = read(file, &nMatris);
 	fclose(file);
-	int o = findMatrix(matrices,nMatris,'B');
-	printf("%d  \n",o);
 
 
+	instruction instru;
+
+	loadInstructions(&instru,location);
+	executeInstructions(instru,matrices,nMatris);
+
+
+	return 0;
 
 
 

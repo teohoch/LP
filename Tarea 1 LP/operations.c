@@ -12,8 +12,6 @@
 
 void printMatrix(matrix * a)
 {
-	/*printf("\n %c \n", a->id);
-	printf("%d \n", a->dim);*/
 	int i,j;
 
 	for (i = 0; i < a->dim; i++)
@@ -24,7 +22,7 @@ void printMatrix(matrix * a)
 		}
 		printf("\n");
 	}
-	printf("\n");
+
 }
 
 int findMatrix(matrix **matrices, int nMatrix ,char letra)
@@ -69,7 +67,7 @@ matrix * add(matrix * a,matrix * b)
 
 	 if (sizeA == sizeB)
 	 {
-		 matrix resultado;
+		 static matrix resultado;
 		 createMatrix(sizeA,'r',&resultado);
 
 		 int i, j;
@@ -80,7 +78,6 @@ matrix * add(matrix * a,matrix * b)
 				 resultado.data[i][j] = a->data[i][j] + b->data[i][j];
 			 }
 		 }
-		 printMatrix(&resultado);
 		 return &resultado;
 	 }else
 		 return NULL;
@@ -96,7 +93,7 @@ matrix * mult(matrix * a,matrix * b)
 	 if (sizeA == sizeB)
 	 {
 		 /* Inicializar matriz de resultado */
-		 matrix resultado;
+		 static matrix resultado;
 		 createMatrix(sizeA,'r',&resultado);
 
 		 /* Comenzar calculo*/
@@ -114,7 +111,6 @@ matrix * mult(matrix * a,matrix * b)
 				 resultado.data[i][j] = cell;
 			 }
 		   }
-		 printMatrix(&resultado);
 		 return &resultado;
 	 }else
 		 return NULL;

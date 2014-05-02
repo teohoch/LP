@@ -12,6 +12,7 @@ matrix * mult(matrix * a,matrix * b);
 //FUNCION ADD()
 /* Retorna el resultado de la suma de las matrices indicadas por parametro.
  */
+
 matrix * add(matrix * a,matrix * b);
 
 typedef matrix * (*ptr_func)(matrix *, matrix *);

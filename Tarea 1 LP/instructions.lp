@@ -1,0 +1,4 @@
+3
+A B MULT
+B A MULT
+B A ADD
