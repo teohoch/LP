@@ -9,7 +9,7 @@
 #include "display.h"
 
 
-int file_exists(const char * filename)
+int fileExists(const char * filename)
 {
 	FILE * file = fopen(filename, "r");
     if (file!=NULL)
@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
 	if(argc>1)
 	{
-		if( file_exists(argv[1]) != -1 )
+		if( fileExists(argv[1]) != -1 )
 		{
 		    ruta = argv[1];
 		} else {

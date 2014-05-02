@@ -1,0 +1,78 @@
+README
+
+Tarea 1 Lenguages de Programacion ILI-253
+"The Matrix Reloaded"
+
+Teodoro Hochfarber
+Rol: 201193039-9
+
+Supuestos:
+
+	*	Los archivos de entrada se conformaran siempre a las pautas 
+		señaladas en el enunciado de la tarea.
+
+Descripcion del Algoritmo:
+
+	Operations:
+		*Add:
+			Suma las dos matrices de acuerdo a las reglas 
+			matematicas comunes.
+					
+		*Mult:
+			Multiplica las dos matrices de acuerdo a las reglas 
+			matematicas comunes.
+					
+		*PrintMatrix:
+			Imprime una matriz de acuerdo a la pauta requerida.
+			
+		*FindMatrix:
+			Encuentra la matriz buscada dentro de un arreglo de 
+			matrices de acuerdo al identificador provisto, devolviendo 
+			su posicion dentro del arreglo
+		
+	Display:
+		*Struct Instruction:
+			Estructura diseñana para contener las instruciones leidas 
+			desde el archivo de entrada.
+			
+		*CreateInstruction:
+			Asigna memoria a la estructura Instruction de acuerdo a 
+			la cantidad requerida en tiempo de ejecucion
+		
+		*LoadInstructions:
+			Lee las instruciones desde el archivo indicado y las carga 
+			a una estructura Instruction.
+			
+		*ExecuteInstruction:
+			Ejecuta las instruciones contenidas dentro de una 
+			estructura Instruction, llamando a la funcion display.
+			 
+		*Display:
+			Dependiendo del puntero a funcion que reciba, ejecuta una 
+			operacion (ADD o MULT) e imprime el resultado por pantalla 
+			utilizando PrintMatrix.
+
+Bonus:
+
+	Tydy:
+		*Se incluye un target clean en el Makefile, el cual elimina
+		 todos los archivos generados por la compilacion del programa 
+		 incluyendo archivo .o, la libreria libdisplay.a y el 
+		 ejecutable.
+		 
+		*Se incluye tambien un target mop, el cual es ejecutado cada 
+		 vez que se llama al target all. mop eliminalos archivos .o 
+		 generados por la compilacion.
+		 
+	Diligent:
+		*Se incluye el codigo nesesario para ingresar mediante 
+		 argumentos de linea de comando la localizacion del archivo que 
+		 contiene las matrices. Su uso es en la forma:
+		 ./tarea1 <ruta_del_archivo> y debe seguir la misma pauta que 
+		 el archivo predeterminado.
+		 
+		 *Dentro de este codigo se incluye la funcion fileExists dentro 
+		  de main.c, el cual comprueba si el archivo puede ser accedido 
+		  por el programa. De lo contrario, el programa mostrara un 
+		  mensage de error y utilizara el archivo predeterminado.
+		 

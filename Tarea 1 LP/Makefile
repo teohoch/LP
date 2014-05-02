@@ -1,7 +1,7 @@
 CC			=	gcc
 CFLAGS		=  -c -Wall
 
-all: tarea1 display
+all: tarea1 display mop
 
 tarea1:  display main.o 
 	$(CC)   main.o  -L. -l display -l matrix -o tarea1
@@ -20,4 +20,6 @@ operations.o: operations.c operations.h
 
 clean:
 	rm -rf *.o libdisplay.a tarea1
+mop:
+	rm -rf *.o
 
