@@ -1,3 +1,4 @@
+package dungeon;
 import java.awt.Point;
 
 import utils.Damage;

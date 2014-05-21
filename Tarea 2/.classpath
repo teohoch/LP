@@ -2,7 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/home/teohoch/Downloads/Tarea2LPMUD_API.jar">
+	<classpathentry kind="lib" path="/home/teohoch/git/LP/Tarea 2/Tarea2LPMUD_API.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/home/teohoch/Downloads/doc/"/>
 		</attributes>
