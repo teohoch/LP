@@ -9,14 +9,18 @@ import java.util.List;
 import cl.utfsm.inf.lp.sem12014.mud.input.BoardReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.EnemyReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.ItemReader;
+import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
+import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import utils.Item;
 
 public class Dungeon {
+	private MessageReader messenger;
 	private Point currentPosition;
 	
 	private String enemiesPath;
 	private String itemsPath;
 	private String boardPath;
+	private String playerPath;
 	
 	private List <Enemy> dungeonEnemies;
 	private List <Item> dungeonItems;
@@ -27,17 +31,25 @@ public class Dungeon {
 	private Dimension mapSize;
 	private List <Point> map;
 	
-	public Dungeon(String enemiesPath, String itemsPath, String boardPath, Point startPosition)
+	private Player player;
+	
+	public Dungeon(String enemiesPath, String itemsPath, String boardPath, String playerPath, MessageReader messenger)
 	{
 		this.enemiesPath = enemiesPath;
 		this.itemsPath = itemsPath;
 		this.boardPath = boardPath;
-		this.currentPosition = startPosition;//TODO Set StartPosition from Player.mud File
+		this.playerPath = playerPath;
+		this.messenger = messenger;
+		
+		this.player = new Player(this.playerPath,messenger);
+		this.currentPosition = player.getInitPosition();
+		
 		
 		LoadEnemies();
 		LoadItems();
 		LoadMap();
-		//TODO Implement LoadPlayer()
+		
+		
 	}
 	/**
 	 * Carga desde archivo los enemigos del tablero
@@ -48,16 +60,21 @@ public class Dungeon {
 		try {
 			eReader = new EnemyReader<Enemy>(enemiesPath, Enemy.class);
 		} catch (IOException e) {
+			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();			
 		}
 		List<Enemy> enemiesList = null;
 		try {
 			enemiesList = eReader.getEnemies();
 		} catch (InstantiationException e) {
+			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-
+			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
+		}
+		for (Enemy enemy : enemiesList) {
+			enemy.init(messenger);
 		}
 		 dungeonEnemies = enemiesList;		
 	}
@@ -70,6 +87,7 @@ public class Dungeon {
 		try {
 			iReader = new ItemReader(itemsPath);
 		} catch (IOException e) {
+			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		}
 		List<Item> itemsList = new ArrayList<Item>();
@@ -94,6 +112,7 @@ public class Dungeon {
 		try {
 			bReader = new BoardReader(boardPath);
 		} catch (IOException e) {
+			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		}
 		mapSize = bReader.getDimension();
@@ -159,13 +178,13 @@ public class Dungeon {
 			destination.y = destination.y + value;
 			break;
 		case 2:
-			destination.x = destination.x - value;
+			destination.x = destination.x + value;
 			break;
 		case 3:
 			destination.y = destination.y - value;
 			break;
 		case 4:
-			destination.x = destination.x + value;
+			destination.x = destination.x - value;
 		}
 		return destination;
 	}
@@ -222,8 +241,10 @@ public class Dungeon {
 			RetrieveCurrentPositionItems();
 			
 			if (destination.distance(currentPosition)>1) {
+				currentPosition = destination;
 				return 2; //se movio 2 espacios
 			} else {
+				currentPosition = destination;
 				return 1; // se movio 1 espacio
 			}
 			

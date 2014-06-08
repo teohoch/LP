@@ -2,11 +2,14 @@ package dungeon;
 import java.awt.Point;
 
 import utils.Damage;
+import utils.PlayerDamage;
 import EnemyClases.Brute;
 import EnemyClases.EnemyClass;
 import EnemyClases.Guardian;
 import EnemyClases.Soldier;
 import EnemyClases.Warlock;
+import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
+import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import cl.utfsm.inf.lp.sem12014.mud.logic.exceptions.GameLogicException;
 import cl.utfsm.inf.lp.sem12014.mud.logic.interfaces.BonusEnemyInterface;
 
@@ -21,28 +24,30 @@ import cl.utfsm.inf.lp.sem12014.mud.logic.interfaces.BonusEnemyInterface;
 public class Enemy implements BonusEnemyInterface {
 	
 	private String name;
-	private int modifHP;
-	private int modifAttackPoints;
+	private int baseHP;
+	private int baseAttackPoints;
 	private int currentHP;
 	private int currentAttackPoints;
 	private int XP;
 	private Point location;
 	private char classId;
-	private EnemyClass type;	
+	private EnemyClass type;		
 	
-	private void init()
+	private boolean attacked;
+	private MessageReader messenger;
+	
+	public void init(MessageReader messenger)
 	{
-		/*if (Type != null) 
-		{
-			currentHP = Type.getHP() + modifHP;
-			currentAtackPoints = Type.getAtackPoints() + modifAttackPoints;						
-		} */
+		currentHP = type.getHP() + baseHP;
+		currentAttackPoints = type.getAtackPoints() + baseAttackPoints;	
+		this.messenger = messenger;
+
 	}
 
 	
 	@Override
 	public void setAttackPoints(int arg0) throws GameLogicException {
-		modifAttackPoints = arg0;
+		baseAttackPoints = arg0;
 	}
 
 	
@@ -54,7 +59,7 @@ public class Enemy implements BonusEnemyInterface {
 	
 	@Override
 	public void setHitPoints(int arg0) throws GameLogicException {
-		modifHP = arg0;
+		baseHP = arg0;
 	}
 
 	
@@ -66,9 +71,7 @@ public class Enemy implements BonusEnemyInterface {
 	
 	@Override
 	public void setPosition(Point arg0) throws GameLogicException {
-		location = arg0;
-		
-		init();
+		location = arg0;		
 	}
 
 	
@@ -89,18 +92,27 @@ public class Enemy implements BonusEnemyInterface {
 			type = new Warlock();
 			break;
 		}
-
 	}
-	
-	public Damage Attack()
+	/**
+	 * Genera el daño que el enemigo realiza, a partir de el daño base, el daño de clase y la habilidad de clase
+	 * @param lastCommand Es el ultimo comando ingresado por el usuario
+	 * @return Retorna el el daño generado por el enemigo
+	 */
+	public Damage Attack(String lastCommand)
 	{
-		return (new Damage(currentAttackPoints,'D'));
+		int mult = type.getAtackAbility(lastCommand);
+		return (new Damage(currentAttackPoints*mult,'D',this.getName()));
 	}
-	
-	public void Defend(Damage damage)
+	/**
+	 * Recive el ataque y, calcula y aplica el daño efectivo al enemigo a partir de su habilidad de clase
+	 * @param damage objeto que contiene al daño generado por el jugador
+	 */
+	public void Defend(PlayerDamage damage)
 	{
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_PLAYER),damage.getOrigin(),damage.getWeaponOrigin(),this.getName());
 		int efectiveDamage = (int) (damage.getValue() * type.getDefenceAbility(damage));
 		currentHP = currentHP - efectiveDamage;
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_DAMAGE), this.getName(),efectiveDamage);
 	}
 
 
@@ -108,7 +120,7 @@ public class Enemy implements BonusEnemyInterface {
 	 * @return the name
 	 */
 	public String getName() {
-		return name;
+		return name +" "+ type.getName();
 	}
 
 
@@ -152,8 +164,18 @@ public class Enemy implements BonusEnemyInterface {
 	public void println()
 	{
 		System.out.println(name +" " 
-				+ type.getName() +" " + modifHP +" " + modifAttackPoints 
+				+ type.getName() +" " + baseHP +" " + baseAttackPoints 
 				+" " + XP +" " + location.x +" " + location.y);
+	}
+
+
+	public boolean isAttacked() {
+		return attacked;
+	}
+
+
+	public void setAttacked(boolean attacked) {
+		this.attacked = attacked;
 	}
 
 

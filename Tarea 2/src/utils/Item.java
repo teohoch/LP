@@ -8,7 +8,7 @@ public class Item
 	 * @param name Nombre del Item
 	 * @param type Tipo de Item
 	 * @param value Valor del Efecto del Item
-	 * @param location Punto dentro del Mapa donde el item se encuentra
+	 * @param location Punto dentro del Mapa donde el item se encuentra, si es (-1,-1) esta en el inventario del usuario
 	 */
 	public Item(String name, char type, int value, Point location) {
 		this.name = name;

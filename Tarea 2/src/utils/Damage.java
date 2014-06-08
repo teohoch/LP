@@ -11,20 +11,23 @@ public class Damage {
 	
 	private final int value;
 	private final char type;
+	private final String origin;
 	
 	/**
-	 * Initializes the object with the parameters given
-	 * @param value The Value of the damage
-	 * @param type The type of damage. 'd' is direct damage and 'o' is object damage
+	 * Inicializa el objeto
+	 * @param value El valor del daño
+	 * @param type El tipo de Daño. 'd' es daño directo y 'o' daño de objeto
+	 * @param origin El nombre del origen del daño (nombre jugador/monstruo)
 	 */
-	public Damage(int value, char type)
+	public Damage(int value, char type, String origin)
 	{
 		this.value = value;
 		this.type = type;
+		this.origin = origin;
 	}
 	/**
 	 * 
-	 * @return Returns the Damage Value.
+	 * @return retorna el valor del daño
 	 */
 	public int getValue()
 	{
@@ -32,11 +35,18 @@ public class Damage {
 	}
 	/**
 	 * 
-	 * @return Returns the Damage Type.
+	 * @return Retorna el tipo de daño
 	 */
 	public char getType()
 	{
 		return type;
+	}
+	/**
+	 * 
+	 * @return Retorna el Nombre del originario del daño
+	 */
+	public String getOrigin() {
+		return origin;
 	}
 
 }
