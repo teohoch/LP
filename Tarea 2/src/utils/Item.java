@@ -2,7 +2,7 @@ package utils;
 
 import java.awt.Point;
 
-public class Item 
+public class Item
 {
 	/**
 	 * @param name Nombre del Item

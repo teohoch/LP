@@ -30,6 +30,7 @@ public class Dungeon {
 	
 	private Dimension mapSize;
 	private List <Point> map;
+	private List <Point> notVisited;
 	
 	private Player player;
 	
@@ -46,13 +47,18 @@ public class Dungeon {
 		
 		
 		LoadEnemies();
+		currentLocationEnemies = new ArrayList<Enemy> ();
+		retrieveCurrentPositionEnemies();
+		
 		LoadItems();
+		currentLocationItems = new ArrayList<Item> ();
+		RetrieveCurrentPositionItems();
 		LoadMap();
 		
 		
 	}
 	/**
-	 * Carga desde archivo los enemigos del tablero
+	 * Carga desde archivo los enemigos del tablero y los inicializa
 	 */
 	private void LoadEnemies()
 	{
@@ -118,13 +124,26 @@ public class Dungeon {
 		mapSize = bReader.getDimension();
 		map = bReader.getImpassablePoints();
 		
+		notVisited = new ArrayList<Point>();
+		
+		for (int x = 0; x < mapSize.width; x++) {
+			for (int y = 0; y < mapSize.height; y++) {
+				notVisited.add(new Point(x,y));
+			}			
+		}
+		for (Point point : map) {
+			if (notVisited.contains(point)) {
+				notVisited.remove(point);				
+			}			
+		}		
 	}
 	/**
-	 * Selecciona los items que estan en la casilla actual
+	 * Selecciona los items que estan en la casilla actual, los carga y devuelve los de la casilla anterior
 	 */
 	private void RetrieveCurrentPositionItems()
 	{
 		List <Item> currentPositionItems = new ArrayList<Item>();
+		List <Item> oldPositionItems = this.currentLocationItems;
 		for (Item item : dungeonItems) 
 		{
 			if (item.getLocation()== currentPosition) 
@@ -132,20 +151,37 @@ public class Dungeon {
 				currentPositionItems.add(item);
 			}			
 		}
+		for (Item item : currentPositionItems) {
+			this.currentLocationItems.remove(item);
+		}
+		for (Item item : oldPositionItems) {
+			this.currentLocationItems.add(item);
+		}
 		this.currentLocationItems = currentPositionItems;
 	}
 	/**
-	 * Selecciona los Enemigos que estan en la casilla actual
+	 * Selecciona los Enemigos que estan en la casilla actual, los carga y devuelve los de la casilla anterior
 	 */
-	private void RetrieveCurrentPositionEnemies()
+	private void retrieveCurrentPositionEnemies()
 	{
 		List <Enemy> currentPositionEnemies = new ArrayList<Enemy>();
-		for (Enemy enemy : dungeonEnemies) 
+		List <Enemy> oldPositionEnemies = this.currentLocationEnemies;
+		
+		for (Enemy enemy : dungeonEnemies) //Recolecto todos los enemigos 
 		{
-			if (enemy.getLocation()== currentPosition) 
+			if (enemy.getLocation().x== currentPosition.x && enemy.getLocation().y== currentPosition.y  ) 
 			{
 				currentPositionEnemies.add(enemy);
 			}			
+		}
+		for (Enemy enemy : currentPositionEnemies)//los elimino de la lista general
+		{
+			dungeonEnemies.remove(enemy);
+		}
+		for (Enemy enemy : oldPositionEnemies)//y devuelvo a los enemigos de la posicion anterior a la lista general
+		{
+			enemy.setAttacked(false);
+			dungeonEnemies.add(enemy);
 		}
 		this.currentLocationEnemies = currentPositionEnemies;
 	}
@@ -170,7 +206,7 @@ public class Dungeon {
 	 * @param value Valor de movimiento, caminar => 1, correr => 2
 	 * @return Devulve el punto de destino despues del movimiento
 	 */
-	private Point GenerateMovement(int direction, int value)
+	private Point generateMovement(int direction, int value)
 	{
 		Point destination = new Point(currentPosition.x, currentPosition.y);
 		switch (direction) {
@@ -195,15 +231,15 @@ public class Dungeon {
 	 * @param running	Si el movimiento es corriendo o no.
 	 * @return Punto en el cual se encuentra el jugador despues del movimiento.
 	 */
-	private Point CheckMovement(int direction, boolean running)
+	private Point checkMovement(int direction, boolean running)
 	{
 		
-		Point destination = GenerateMovement(direction, 1);
+		Point destination = generateMovement(direction, 1);
 		if (CheckPassablePoint(destination)) 
 		{
 			if (running) 
 			{
-				Point destinationRunning = GenerateMovement(direction, 2);
+				Point destinationRunning = generateMovement(direction, 2);
 				if (CheckPassablePoint(destinationRunning)) 
 				{
 					return destinationRunning;					
@@ -232,36 +268,69 @@ public class Dungeon {
 	 *  1 -> Se movio una casilla.
 	 *  2 -> Se movio dos casillas.
 	 */
-	public int MoveCurrentPosition(int direction, boolean running)
+	public int moveCurrentPosition(int direction)
 	{
-		Point destination = CheckMovement(direction, running);
+		Point oldPosition = currentPosition;
+		Point destination = checkMovement(direction, player.IsRunning());
 		if (destination != currentPosition) {
 			
-			RetrieveCurrentPositionEnemies();
+			currentPosition = destination;
+			retrieveCurrentPositionEnemies();
 			RetrieveCurrentPositionItems();
+			notVisited.remove(destination);
 			
-			if (destination.distance(currentPosition)>1) {
-				currentPosition = destination;
-				return 2; //se movio 2 espacios
-			} else {
-				currentPosition = destination;
-				return 1; // se movio 1 espacio
-			}
-			
+			return ((destination.distance(oldPosition)>1) ? 2 : 1);	
 			
 		} else {
 			return -1;
-		}
-		
-		
+		}		
 	}
-
+	/**
+	 * Comprueba los posibles movientos para el jugador
+	 * @return Retorna una lista con Integer que representan las direcciones en las cuales se puede mover el jugador
+	 * Up = 1; Right	= 2; Down = 3; Left	= 4;
+	 */
+	public List<Integer> posibleMovements()
+	{
+		List <Integer> posibleMovements = new ArrayList<Integer>();
+		for (int i = 1; i <= 4; i++) {
+			if (checkMovement(i,false)	== currentPosition) {
+				posibleMovements.add(i);
+			}			
+		}
+		return posibleMovements;
+	}
+	//TODO Implementar ataque a enemigo
+	//TODO Implementar ataque a jugador
+	//TODO Implementar kill enemigo
+	
 	public List<Enemy> getCurrentLocationEnemies() {
 		return currentLocationEnemies;
 	}
 
 	public List<Item> getCurrentLocationItems() {
 		return currentLocationItems;
+	}
+	
+	public int getEnemyTotalNumber()
+	{
+		return  (currentLocationEnemies.size()+ dungeonEnemies.size());
+	}
+	public int getNumberOfNotVisitedTiles()
+	{
+		return notVisited.size();
+	}
+	public String getPlayerName()
+	{
+		return player.getName();
+	}
+	public boolean isPlayerDead()
+	{
+		return player.IsHeDead();
+	}
+	public List<Item> getPlayerInventory()
+	{
+		return player.getInventory();
 	}
 	
 

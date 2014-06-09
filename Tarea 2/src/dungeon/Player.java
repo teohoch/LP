@@ -20,11 +20,12 @@ public class Player {
 	private int maxHP;
 	private int currentHP;
 	
-	private int exp;
+	private int currentExp;
+	private int nextLevelExp;
 	private int level;
 	
-	int attack;
-	int defense;
+	private int attack;
+	private int defense;
 	
 	private Item weapon;
 	private Item armor;
@@ -34,6 +35,7 @@ public class Player {
 	private Point initPosition;
 	
 	private DefensiveEffect defensiveEffect;
+	private int running;
 	
 	private MessageReader messenger;
 	
@@ -42,9 +44,10 @@ public class Player {
 		this.messenger = messenger;
 		loadPlayer(filePath);
 		defensiveEffect = null;
-		exp = 0;
+		currentExp = 0;
 		level = 1;
 		maxInventory = 10;
+		running = 0;
 		
 	}
 	/**
@@ -86,7 +89,8 @@ public class Player {
 			int value = pReader.getValue(name);
 			Item Temp = new Item(name, type, value, new Point(-1,-1));
 			tempList.add(Temp);			
-		}		
+		}
+		inventory = tempList;
 	}
 	/**
 	 * Genera el daño por el jugador a partir de su arma
@@ -119,7 +123,9 @@ public class Player {
 		for (Item item : inventory) {
 			if (item.getName()==name) {
 				isIn = true;
-			}	
+			}else{
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY),name);
+			}
 		}
 		return isIn;
 	}
@@ -219,18 +225,186 @@ public class Player {
 		inventory.remove(item);
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DROP),	itemName);
 	}
-	//TODO funcion EquipArmor(String itemName)
-	//TODO funcion EquipWeapon(String itemName)
-	//TODO funcion Calculo de exp nesesaria para siguiente nivel
-	//TODO funcion addEXP(int EXP)
-	//TODO funcion levelUp()
-	//TODO Funcion canLevelUp()
+	/**
+	 * Equipa la armadura seleccionada
+	 * @param armor item armadura a equipar
+	 */
+	private void EquipArmor(Item armor)
+	{		
+			Item newArmor = armor;
+			Item oldArmor = this.armor;
+			this.armor = newArmor;	
+			inventory.remove(newArmor);
+			inventory.add(oldArmor);
+	}
+	/**
+	 * Equipa la armadura seleccionada
+	 * @param weapon item armadura a equipar
+	 */
+	private void EquipWeapon(Item weapon)
+	{		
+			Item newWeapon = weapon;
+			Item oldWeapon = this.weapon;
+			this.armor = newWeapon;	
+			inventory.remove(newWeapon);
+			inventory.add(oldWeapon);
+	}
+	/**
+	 * Equipa la armadura o arma segun corresponda. Chequea que el objeto este en el inventario, y despues que sea del tipo correcto.
+	 * @param itemName Nombre del arma/armadura a equipar
+	 * @return Si la operacion termina con exito retorna true, si el objeto no esta en el inventario o no es del tipo correcto, retorna false.
+	 */
+	public boolean Equip(String itemName)
+	{
+		boolean returning = false;
+		if (InInventory(itemName)) {
+			Item item = findItem(itemName);
+			switch (item.getType()) {
+			case 'A':
+				EquipArmor(item);
+				returning = true;
+				break;
+			case 'W':
+				EquipWeapon(item);
+				returning = true;
+				break;
+			default:
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_EQUIP), item.getName());
+				break;
+			}
+		}		
+		return returning;
+	}
+	/**
+	 * Calcula la Experiencia nesesaria para alcansar el siguiente nivel;
+	 */
+	private void NextLevelExp()
+	{
+		int nextLevel = level +1;
+		double sum = 0;
+		for (int i = 1; i < (nextLevel-1); i++) {
+			sum = sum + Math.pow(2, (i/7));			
+		}
+		sum = 9*sum;
+		this.nextLevelExp = (int) Math.round(sum);
+	}
+	/**
+	 * Agrega los puntos de experiencia a los puntos acumulados.
+	 * @param newExp Puntos de experiencia a añadir
+	 */
+	public void AddExp(int newExp)
+	{
+		currentExp = currentExp + newExp;
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_XP_EARN),name,newExp);
+	}
+	/**
+	 * Retorna si el jugador puede subir de nivel
+	 * @return 
+	 */
+	public boolean CanLevelUp()
+	{
+		return (currentExp>=nextLevelExp);
+	}
 	
 	/**
-	 * Remueve los effectos defensivos que ya no deben afectar al jugador
+	 * Sube de nivel al jugador. Se le agregan 2 slots a la capacidad maxima del inventario,
+	 *  se le aumenta 10 a los HP Maximos y a los HP actuales.
+	 */
+	public void LevelUp()
+	{
+		maxInventory = maxInventory + 2;
+		maxHP = maxHP + 10;
+		currentHP = (currentHP+10 <= maxHP) ? currentHP+10 : maxHP;
+		NextLevelExp();
+		level++;
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_LEVEL_UP),name,level,maxHP,maxInventory);
+	}
+	/**
+	 * 
+	 * @return Retorna si el jugador esta corriendo o no
+	 */
+	public boolean IsRunning()
+	{
+		return (running > 2);
+	}
+	/**
+	 * 
+	 * @return Retorna si el jugador puede volver a correr
+	 */
+	private boolean CanRun()
+	{
+		return (running==0);
+	}
+	/**
+	 * Comprueba si el jugador esta corriendo y si puede volver a correr. 
+	 * De no estar corriendo y puede volver a correr, el jugador comienza a correr.
+	 * @return Retorna true solamente si el jugador paso de estar caminando a corriendo.
+	 */
+	public boolean Run()
+	{
+		if (IsRunning()) {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN), name);
+			return false;
+		} else {
+			if (CanRun()) {
+				running = 6;
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_RUN), name);
+				return true;
+			} else {
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN_COOLDOWN), name);
+				return false;
+			}
+		}
+	}
+	/**
+	 * Comprueba si el jugador esta corriendo. Si es asi, lo hace caminar y descansar 1 turno (running = 1)
+	 * @return Retorna true solo si el jugado paso de correr a caminar.
+	 */
+	public boolean Walk()
+	{
+		if (IsRunning()) {
+			running = 1;
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_WALK), name);
+			return true;			
+		} else {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK), name);
+			return false;
+		}
+	}
+	/**
+	 * Hace que el jugador descanse disminullendo su contador de Running
+	 */
+	private void Rest()
+	{
+		if (running>0 && running <=2) {
+			running--;
+			if (running ==0) {
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_COOLDOWN_END), name);		
+			}
+		}
+		
+	}
+	/**
+	 * reduce el contador running para indicar que el jugador corrio.
+	 */
+	public void Move()
+	{
+		if (IsRunning()) 
+		{
+			running--;
+		}
+		if (running ==2) {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_RUN_END), name);		
+		}
+	}
+	
+	/**
+	 * Remueve los effectos defensivos que ya no deben afectar al jugador y 
+	 * hace que el jugador descanse
 	 */
 	public void turnPassed()
 	{
+		Rest();
 		defensiveEffect.turnPassed();
 		if (defensiveEffect.getRemainingTurns()<=0){
 			defensiveEffect=null;
@@ -247,7 +421,7 @@ public class Player {
 		return currentHP;
 	}
 	public int getExp() {
-		return exp;
+		return currentExp;
 	}
 	public int getLevel() {
 		return level;
@@ -263,6 +437,9 @@ public class Player {
 	}
 	public Point getInitPosition() {
 		return initPosition;
+	}
+	public boolean IsHeDead() {
+		return (currentHP<1);
 	}
 		
 	

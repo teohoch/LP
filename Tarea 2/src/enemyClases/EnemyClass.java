@@ -1,4 +1,4 @@
-package EnemyClases;
+package enemyClases;
 import utils.Damage;
 
 

@@ -3,15 +3,15 @@ import java.awt.Point;
 
 import utils.Damage;
 import utils.PlayerDamage;
-import EnemyClases.Brute;
-import EnemyClases.EnemyClass;
-import EnemyClases.Guardian;
-import EnemyClases.Soldier;
-import EnemyClases.Warlock;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import cl.utfsm.inf.lp.sem12014.mud.logic.exceptions.GameLogicException;
 import cl.utfsm.inf.lp.sem12014.mud.logic.interfaces.BonusEnemyInterface;
+import enemyClases.Brute;
+import enemyClases.EnemyClass;
+import enemyClases.Guardian;
+import enemyClases.Soldier;
+import enemyClases.Warlock;
 
 /**
  * Implements the Bonus Enemy Interface, with support for different classes of enemies.
@@ -114,6 +114,7 @@ public class Enemy implements BonusEnemyInterface {
 		currentHP = currentHP - efectiveDamage;
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_DAMAGE), this.getName(),efectiveDamage);
 	}
+	//TODO Implementar IsItDead()
 
 
 	/**
