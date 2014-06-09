@@ -1,11 +1,11 @@
 package ui;
 
 import java.io.IOException;
-import java.util.Formatter;
 import java.util.List;
 import java.util.Scanner;
 
 import utils.Item;
+import utils.PlayerDamage;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import dungeon.Dungeon;
@@ -66,70 +66,194 @@ public class UI {
 		while (!validCommand) 
 		{
 			String command;
+			String errorCode = null;
 			command = user_input.nextLine();
-			if (command.contains(" ")) {
-				//TODO implentar manejo de "tomar <item>"
-				//TODO implentar manejo de "pelear <enemigo>"
-				//TODO implentar manejo de "equipar <item>"
-				//TODO implentar manejo de "usar <item>"
-				//TODO implentar manejo de "descartar <item>"
-				System.out.println("Linea sin espacio");
-			} else {
-				switch (command) {
+			
+			String split[]= command.split("\\s+");
+			String action = split[0];
+			String argument = "";
+			if (split.length>1) {
+				argument = command.substring(command.indexOf(' ')+1);
+			}
+			
+				switch (action) {
 				case "terminar":
 					keepPlaying = false;
 					validCommand = true;
-					lastCommand = command;
+					lastCommand = action;
 					exitMessage = MessageCode.MESSAGE_GAME_EXIT_USER;
 					break;
 				case "inventario":
 					showInventory();
 					validCommand = true;
-					lastCommand = command;
+					lastCommand = action;
 					break;
 				case "observar":
 					observe();
 					validCommand = true;
-					lastCommand = command;
+					lastCommand = action;
 					break;
 				case "caminar":
 					if (setPlayerWalk()){
-						lastCommand = command;	
+						lastCommand = action;	
 						validCommand = true;
+					}else{
+						errorCode= String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK), maze.getPlayerName());
 					}
 					break;
 				case "correr":
-					if (setPlayerRun()){
-						lastCommand = command;	
-						validCommand = true;
-					}									
+					int state = maze.playerRun();
+					switch (state) {
+						case 1:
+							lastCommand = action;	
+							validCommand = true;
+							break;
+						case -1:
+							errorCode= String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN), maze.getPlayerName());
+							break;
+						case -2:
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN_COOLDOWN), maze.getPlayerName());
+							break;
+						}												
 					break;
 				case "avanzar":
 					validCommand = maze.moveCurrentPosition(1);
 					lastCommand = generateMovementLastCommand();
+					if (!validCommand) {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE);
+					}
+					
 					break;
 				case "derecha":
 					validCommand = maze.moveCurrentPosition(2);
 					lastCommand = generateMovementLastCommand();
+					if (!validCommand) {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE);
+					}
 					break;
 				case "retroceder":
 					validCommand = maze.moveCurrentPosition(3);
 					lastCommand = generateMovementLastCommand();
+					if (!validCommand) {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE);
+					}
 					break;
 				case "izquierda":
 					validCommand = maze.moveCurrentPosition(4);
 					lastCommand = generateMovementLastCommand();
+					if (!validCommand) {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE);
+					}
+					break;
+				case "tomar":
+					if (split.length>1) {
+						if (maze.itemIsInCurrent(argument)) {
+							if (maze.playerPickItem(argument)) {
+								lastCommand = action;
+								validCommand = true;
+							} else {
+								errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_FULL), argument);
+							}
+						} else {
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_CELL_ITEM),argument);
+						}
+					} else {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ARGUMENT);
+					}
+					break;
+				case "pelear":
+					if (split.length>1) {
+						if (maze.enemyInCurrent(argument)) {
+							maze.playerAtackEnemy(argument);
+							lastCommand = action;
+							validCommand = true;
+						} else {
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ATTACK),argument);
+						}
+					} else {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ARGUMENT);
+					}
+					break;
+				case "equipar":
+					if (split.length>1) {
+						if (maze.isInPlayerInventory(argument)) {
+							if(maze.playerEquip(argument)){
+								lastCommand = action;
+								validCommand = true;
+							}else{
+								errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_EQUIP),argument);
+							}
+						} else {
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY), argument);
+						}
+					} else {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ARGUMENT);
+					}
+					break;
+				case "usar":
+					if (split.length>1) {
+						if (maze.isInPlayerInventory(argument)) {
+							PlayerDamage status = maze.usePlayerItem(argument);
+							if (status!=null) {
+								if (status.getType()=='e') {
+									switch (status.getValue()) {
+									case -1:
+										errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE), argument);
+										break;
+									case -2:
+										errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL_FULL), maze.getPlayerName());
+										break;
+									case -3:
+										errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE_FULL), maze.getPlayerName());
+										break;
+									}											
+								} else {
+									//Se utilizo un objeto ofensivo
+									lastCommand = action;
+									validCommand = true;
+									atackAllEnemies(status);
+
+								}
+								
+							} else {
+								lastCommand = action;
+								validCommand = true;
+							}
+							
+						} else {
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY), argument);
+						}
+					} else {
+						errorCode =messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ARGUMENT);
+						}
+					break;
+				case "descartar":
+					if (split.length>1) {
+						if (maze.isInPlayerInventory(argument)) {
+							maze.playerDropItem(argument);
+							lastCommand = action;
+							validCommand = true;
+						}else{
+							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY), argument);
+						}
+					} else {
+						errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_ARGUMENT);
+					}
 					break;
 				default:
-					System.out.println("default");
+					errorCode = messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_COMMAND);
 					break;
 				}
-			}
+				if (!validCommand) {
+					System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR)+"\n", command,errorCode);				
+				}
+			
 			
 		}
 		maze.playerTurnPassed();
 		currentTurn++;
 	}
+	
 	
 	private void EnemyTurn()
 	{
@@ -287,10 +411,17 @@ public class UI {
 	private boolean setPlayerWalk() {
 		return maze.playerWalk();
 	}
-	private boolean setPlayerRun() {
-		return maze.playerRun();
-	}
+	
 	private String generateMovementLastCommand(){
 		return ((running) ? "correr" : "caminar");
+	}
+	private void atackAllEnemies(PlayerDamage status) {
+		List<Enemy> currentEnemies = maze.getCurrentLocationEnemies();
+		if (currentEnemies.size() > 0) {
+			maze.attackAllCurrentEnemies(status);			
+		} else {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_NONE)+"\n", status.getOrigin(),status.getWeaponOrigin());
+		}
+		
 	}
 }

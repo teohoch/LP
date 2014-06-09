@@ -65,14 +65,19 @@ public class Player {
 			e.printStackTrace();
 		}
 		name = pReader.getName();
-		maxHP = currentHP = pReader.getHitPoints();
+		maxHP = pReader.getHitPoints();
+		currentHP = pReader.getHitPoints();
 		initPosition = pReader.getPosition();
 		
 		
 		Map.Entry<String, Integer> armorStats = pReader.getArmor();
 		Map.Entry<String, Integer> weaponStats = pReader.getWeapon();
+		
 		armor = new Item(armorStats.getKey(),'A',armorStats.getValue(),new Point(-1, -1));
+		defense = armorStats.getValue();
+		
 		weapon = new Item(weaponStats.getKey(),'W',weaponStats.getValue(),new Point(-1, -1));
+		attack = weaponStats.getValue();
 		
 		loadInventory(pReader);
 		
@@ -96,7 +101,7 @@ public class Player {
 	 * Genera el daño por el jugador a partir de su arma
 	 * @return el daño por el usuario
 	 */
-	public Damage Attack()
+	public PlayerDamage Attack()
 	{
 		return (new PlayerDamage(attack,'D',name,weapon.getName()));
 	}
@@ -117,14 +122,13 @@ public class Player {
 	 * @param name Nombre del objeto
 	 * @return respuesta a ¿esta el objeto en el inventario?
 	 */
-	public boolean InInventory(String name)
+	public boolean inInventory(String name)
 	{
 		boolean isIn = false;
 		for (Item item : inventory) {
-			if (item.getName()==name) {
+			String itemName = item.getName();
+			if ( itemName.equals(name)) {
 				isIn = true;
-			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY)+"\n",name);
 			}
 		}
 		return isIn;
@@ -138,7 +142,8 @@ public class Player {
 	{
 		Item itemFound = null;
 		for (Item item : inventory) {
-			if (item.getName()==name) {
+			String itemName = item.getName();
+			if (itemName.equals(name)) {
 				itemFound =item;
 			}	
 		}
@@ -148,7 +153,14 @@ public class Player {
 	/**
 	 * Maneja el uso de objetos del inventario
 	 * @param itemName
-	 * @return
+	 * @return Si el item no se puede usar, retorna un paquete damage de tipo 'e' y valor 
+	 * <p>	-1 => si el item no es del tipo correcto (defensivo, ofensivo, curativo),
+	 * <p>	-2 => si la salud esta al maximo y se uso un item curativo,
+	 * <p>	-3 => si ya se encuentra bajo los efectos de un objeto defensivo y se utilizo un elemento defensivo
+	 * <p>
+	 * <p>Si la accion se completo con exito, retorna
+	 * <p>	null => si se utilizo un objeto curativo o defensivo
+	 * <p>	paquete damage de tipo "o" => si se utilizo objeto ofensivo
 	 */
 	public PlayerDamage UseItem(String itemName)
 	{
@@ -166,11 +178,10 @@ public class Player {
 					recoverHP = maxHP - currentHP;
 					currentHP = maxHP;
 				}
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL)+"\n",name,item.getName(),recoverHP);
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL)+"\n",name,item.getName(),recoverHP,currentHP);
 				inventory.remove(item);
-				returning = new PlayerDamage(-1, 'n', null, null);
 			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL_FULL)+"\n",name);
+				returning = new PlayerDamage(-2, 'e', null, null);
 			}
 			break;
 			
@@ -178,10 +189,9 @@ public class Player {
 			if (defensiveEffect == null) {				
 				defensiveEffect = new DefensiveEffect(item.getName(), 3,item.getValue());
 				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE)+"\n",name,item.getName(),item.getValue());
-				inventory.remove(item);
-				returning = new PlayerDamage(-1, 'n', null, null);
+				inventory.remove(item);				
 			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE_FULL)+"\n",name);			
+				returning = new PlayerDamage(-3, 'e', null, null);		
 			}			
 			break;
 			
@@ -190,9 +200,9 @@ public class Player {
 			inventory.remove(item);
 			break;
 		case 'W':
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE)+"\n",item.getName());
+			returning = new PlayerDamage(-1, 'e', null, null);
 		case 'A':
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE)+"\n",item.getName());
+			returning = new PlayerDamage(-1, 'e', null, null);
 		default:
 			break;
 		}
@@ -210,8 +220,7 @@ public class Player {
 			inventory.add(item);
 			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_PICK)+"\n",	name, item.getName());
 			return true;			
-		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_FULL)+"\n", item.getName());						
+		} else {						
 			return false;
 		}
 	}
@@ -219,11 +228,12 @@ public class Player {
 	 * Elimina un objeto del inventario del usuario
 	 * @param itemName Nombre del objeto a eliminar
 	 */
-	public void dropItem(String itemName)
+	public Item dropItem(String itemName)
 	{
 		Item item = findItem(itemName);
 		inventory.remove(item);
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DROP)+"\n",	itemName);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DROP)+"\n",name,itemName);
+		return item;
 	}
 	/**
 	 * Equipa la armadura seleccionada
@@ -236,6 +246,7 @@ public class Player {
 			this.armor = newArmor;	
 			inventory.remove(newArmor);
 			inventory.add(oldArmor);
+			defense = this.armor.getValue();
 			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EQUIP_ARMOR)+"\n", name,this.armor.getName());
 	}
 	/**
@@ -246,10 +257,11 @@ public class Player {
 	{		
 			Item newWeapon = weapon;
 			Item oldWeapon = this.weapon;
-			this.armor = newWeapon;	
+			this.weapon = newWeapon;	
 			inventory.remove(newWeapon);
 			inventory.add(oldWeapon);
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EQUIP_ARMOR)+"\n", name,this.weapon.getName());
+			attack = this.weapon.getValue();
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EQUIP_WEAPON)+"\n", name,this.weapon.getName());
 	}
 	/**
 	 * Equipa la armadura o arma segun corresponda. Chequea que el objeto este en el inventario, y despues que sea del tipo correcto.
@@ -259,7 +271,7 @@ public class Player {
 	public boolean Equip(String itemName)
 	{
 		boolean returning = false;
-		if (InInventory(itemName)) {
+		if (inInventory(itemName)) {
 			Item item = findItem(itemName);
 			switch (item.getType()) {
 			case 'A':
@@ -271,7 +283,6 @@ public class Player {
 				returning = true;
 				break;
 			default:
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_EQUIP)+"\n", item.getName());
 				break;
 			}
 		}		
@@ -301,7 +312,7 @@ public class Player {
 	}
 	/**
 	 * Retorna si el jugador puede subir de nivel
-	 * @return 
+	 * @return Retorna true si el jugador puede subir de nivel
 	 */
 	public boolean CanLevelUp()
 	{
@@ -340,21 +351,19 @@ public class Player {
 	/**
 	 * Comprueba si el jugador esta corriendo y si puede volver a correr. 
 	 * De no estar corriendo y puede volver a correr, el jugador comienza a correr.
-	 * @return Retorna true solamente si el jugador paso de estar caminando a corriendo.
+	 * @return Retorna -1 si el jugador ya estaba corriendo, -2 si todavia debe descansar y 1 si paso de caminar a correr.
 	 */
-	public boolean run()
+	public int run()
 	{
 		if (isRunning()) {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN)+"\n", name);
-			return false;
+			return -1;
 		} else {
 			if (canRun()) {
 				running = 7;
 				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_RUN)+"\n", name);
-				return true;
+				return 1;
 			} else {
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN_COOLDOWN)+"\n", name);
-				return false;
+				return -2;
 			}
 		}
 	}
@@ -365,11 +374,10 @@ public class Player {
 	public boolean walk()
 	{
 		if (isRunning()) {
-			running = 1;
+			running = 2;
 			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_WALK)+"\n", name);
 			return true;			
 		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK)+"\n", name);
 			return false;
 		}
 	}

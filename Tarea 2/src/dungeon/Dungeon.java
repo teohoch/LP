@@ -12,6 +12,7 @@ import cl.utfsm.inf.lp.sem12014.mud.input.ItemReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import utils.Item;
+import utils.PlayerDamage;
 
 public class Dungeon {
 	private MessageReader messenger;
@@ -262,7 +263,6 @@ public class Dungeon {
 	/**
 	 * Chekea si el movimiento es valido, y si lo es, chekea que tanto se movio
 	 * @param direction Direccion del moviento
-	 * @param running	Si esta corriendo o no
 	 * @return Devuelve el resultado de la operacion. Posibles resultados:
 	 * -1 -> No se puedo mover, movimiento invalido
 	 *  1 -> Se movio una casilla.
@@ -295,7 +295,6 @@ public class Dungeon {
 
 			
 		} else {
-			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE));
 			return false;
 		}		
 	}
@@ -343,7 +342,7 @@ public class Dungeon {
 	public boolean playerWalk(){
 		return player.walk();
 	}
-	public boolean playerRun() {
+	public int playerRun() {
 		return player.run();
 	}
 	
@@ -374,6 +373,96 @@ public class Dungeon {
 	public List<Item> getPlayerInventory()
 	{
 		return player.getInventory();
+	}
+	public boolean isInPlayerInventory(String string) {
+		return player.inInventory(string);
+	}
+	public void attackAllCurrentEnemies(PlayerDamage status) {
+		for (Enemy enemy : currentLocationEnemies) {
+			enemy.Defend(status);
+		}
+		
+	}
+	public PlayerDamage usePlayerItem(String string) {
+		return player.UseItem(string);
+	}
+	public void playerDropItem(String argument) {
+		Item item = player.dropItem(argument);
+		item.setLocation(currentPosition);
+		currentLocationItems.add(item);		
+	}
+	/**
+	 * Revisa si un objeto dado esta en la presente casilla
+	 * @param itemName	Nombre del objeto dado	
+	 * @return true si esta, falsi si no lo esta.
+	 */
+	public boolean itemIsInCurrent(String itemName){
+		boolean returning = false;
+		for (Item item : currentLocationItems) {
+			if (itemName.equals(item.getName())) {
+				returning = true;
+				break;
+			} 
+		}
+		return returning;
+	}
+	public boolean playerPickItem(String argument) {
+		Item item = findItem(argument);
+		boolean state = player.addItemToInventory(item);
+		if (state) {
+			currentLocationItems.remove(item);
+			item.setLocation(new Point(-1, -1));
+		}
+		
+		return state;
+		
+	}
+	private Item findItem(String argument) {
+		Item returning = null;
+		for (Item item : currentLocationItems) {
+			if (argument.equals(item.getName())) {
+				returning = item;
+				break;
+			}
+		}
+		return returning;
+	}
+	public boolean playerEquip(String argument) {
+		return player.Equip(argument);
+	}
+	public boolean enemyInCurrent(String argument) {
+		boolean returning = false;
+		for (Enemy enemy : currentLocationEnemies) {
+			if (argument.equals(enemy.getName())) {
+				returning = true;
+				break;
+			} 
+		}
+		return returning;
+	}
+	public Enemy findEnemy(String argument){
+		Enemy returning = null;
+		for (Enemy enemy : currentLocationEnemies) {
+			if (argument.equals(enemy.getName())) {
+				returning = enemy;
+				break;
+			}
+		}
+		return returning;
+	}
+	public void playerAtackEnemy(String argument) {
+		PlayerDamage damage = player.Attack();
+		Enemy enemy = findEnemy(argument);
+		enemy.Defend(damage);
+		if (enemy.isDead()) {
+			currentLocationEnemies.remove(enemy);
+			player.AddExp(enemy.getXP());
+			if (player.CanLevelUp()) {
+				player.levelUp();
+			}
+		}
+		
+		
 	}
 
 	

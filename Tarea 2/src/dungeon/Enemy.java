@@ -101,6 +101,7 @@ public class Enemy implements BonusEnemyInterface {
 	public Damage Attack(String lastCommand)
 	{
 		int mult = type.getAtackAbility(lastCommand);
+		attacked = false;
 		return (new Damage(currentAttackPoints*mult,'D',this.getName()));
 	}
 	/**
@@ -113,8 +114,15 @@ public class Enemy implements BonusEnemyInterface {
 		int efectiveDamage = (int) (damage.getValue() * type.getDefenceAbility(damage));
 		currentHP = currentHP - efectiveDamage;
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_DAMAGE)+"\n", this.getName(),efectiveDamage);
+		attacked = true;
 	}
-	//TODO Implementar IsItDead()
+	/**
+	 * Retorna si el enemigo esta muerto o no
+	 * @return muerto => true, vivo =>false
+	 */
+	public boolean isDead() {
+		return (currentHP<=0);
+	}
 
 
 	/**
@@ -170,6 +178,9 @@ public class Enemy implements BonusEnemyInterface {
 	public void setAttacked(boolean attacked) {
 		this.attacked = attacked;
 	}
+
+
+	
 
 
 

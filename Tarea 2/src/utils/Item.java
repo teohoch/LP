@@ -21,6 +21,10 @@ public class Item
 	private int value;
 	private Point location;
 	
+	public void setLocation(Point location) {
+		this.location = location;
+	}
+
 	public void println(){
 		System.out.println(name +" "+ type +" "+ location.x +" "+ location.y +" "+ value);
 

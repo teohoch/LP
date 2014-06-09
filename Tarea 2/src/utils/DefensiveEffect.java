@@ -8,7 +8,7 @@ public class DefensiveEffect {
 	/**
 	 * @param origin	Origen del efecto defensivo (ej. Nombre del objeto protector)
 	 * @param maxTurns	Tiempo maximo del efecto
-	 * @param remainingTurns	Tiempo restante del efecto
+	 * @param val		Valor del efecto de proteccion
 	 */
 	public DefensiveEffect(String origin, int maxTurns, int val) {
 		super();
