@@ -109,7 +109,7 @@ public class Player {
 	{
 		int efectiveDamage = (int) (damage.getValue()- defense -defensiveEffect.getVal());
 		efectiveDamage = (efectiveDamage > 0) ? efectiveDamage : 0;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_ENEMY),damage.getOrigin(),name,efectiveDamage);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_ENEMY)+"\n",damage.getOrigin(),name,efectiveDamage);
 		currentHP = currentHP - efectiveDamage;
 	}
 	/**
@@ -124,7 +124,7 @@ public class Player {
 			if (item.getName()==name) {
 				isIn = true;
 			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY),name);
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY)+"\n",name);
 			}
 		}
 		return isIn;
@@ -166,22 +166,22 @@ public class Player {
 					recoverHP = maxHP - currentHP;
 					currentHP = maxHP;
 				}
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL),name,item.getName(),recoverHP);
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL)+"\n",name,item.getName(),recoverHP);
 				inventory.remove(item);
 				returning = new PlayerDamage(-1, 'n', null, null);
 			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL_FULL),name);
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_HEAL_FULL)+"\n",name);
 			}
 			break;
 			
 		case 'D':
 			if (defensiveEffect == null) {				
 				defensiveEffect = new DefensiveEffect(item.getName(), 3,item.getValue());
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE),name,item.getName(),item.getValue());
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE)+"\n",name,item.getName(),item.getValue());
 				inventory.remove(item);
 				returning = new PlayerDamage(-1, 'n', null, null);
 			}else{
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE_FULL),name);			
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DEFENSE_FULL)+"\n",name);			
 			}			
 			break;
 			
@@ -190,9 +190,9 @@ public class Player {
 			inventory.remove(item);
 			break;
 		case 'W':
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE),item.getName());
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE)+"\n",item.getName());
 		case 'A':
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE),item.getName());
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_USE)+"\n",item.getName());
 		default:
 			break;
 		}
@@ -208,10 +208,10 @@ public class Player {
 	{
 		if (inventory.size()<maxInventory) {
 			inventory.add(item);
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_PICK),	name, item.getName());
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_PICK)+"\n",	name, item.getName());
 			return true;			
 		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_FULL), item.getName());						
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_FULL)+"\n", item.getName());						
 			return false;
 		}
 	}
@@ -223,7 +223,7 @@ public class Player {
 	{
 		Item item = findItem(itemName);
 		inventory.remove(item);
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DROP),	itemName);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ITEM_DROP)+"\n",	itemName);
 	}
 	/**
 	 * Equipa la armadura seleccionada
@@ -236,6 +236,7 @@ public class Player {
 			this.armor = newArmor;	
 			inventory.remove(newArmor);
 			inventory.add(oldArmor);
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EQUIP_ARMOR)+"\n", name,this.armor.getName());
 	}
 	/**
 	 * Equipa la armadura seleccionada
@@ -248,6 +249,7 @@ public class Player {
 			this.armor = newWeapon;	
 			inventory.remove(newWeapon);
 			inventory.add(oldWeapon);
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EQUIP_ARMOR)+"\n", name,this.weapon.getName());
 	}
 	/**
 	 * Equipa la armadura o arma segun corresponda. Chequea que el objeto este en el inventario, y despues que sea del tipo correcto.
@@ -269,7 +271,7 @@ public class Player {
 				returning = true;
 				break;
 			default:
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_EQUIP), item.getName());
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_TYPE_EQUIP)+"\n", item.getName());
 				break;
 			}
 		}		
@@ -295,7 +297,7 @@ public class Player {
 	public void AddExp(int newExp)
 	{
 		currentExp = currentExp + newExp;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_XP_EARN),name,newExp);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_XP_EARN)+"\n",name,newExp);
 	}
 	/**
 	 * Retorna si el jugador puede subir de nivel
@@ -310,20 +312,20 @@ public class Player {
 	 * Sube de nivel al jugador. Se le agregan 2 slots a la capacidad maxima del inventario,
 	 *  se le aumenta 10 a los HP Maximos y a los HP actuales.
 	 */
-	public void LevelUp()
+	public void levelUp()
 	{
 		maxInventory = maxInventory + 2;
 		maxHP = maxHP + 10;
 		currentHP = (currentHP+10 <= maxHP) ? currentHP+10 : maxHP;
 		NextLevelExp();
 		level++;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_LEVEL_UP),name,level,maxHP,maxInventory);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_LEVEL_UP)+"\n",name,level,maxHP,maxInventory);
 	}
 	/**
 	 * 
 	 * @return Retorna si el jugador esta corriendo o no
 	 */
-	public boolean IsRunning()
+	public boolean isRunning()
 	{
 		return (running > 2);
 	}
@@ -331,7 +333,7 @@ public class Player {
 	 * 
 	 * @return Retorna si el jugador puede volver a correr
 	 */
-	private boolean CanRun()
+	private boolean canRun()
 	{
 		return (running==0);
 	}
@@ -340,18 +342,18 @@ public class Player {
 	 * De no estar corriendo y puede volver a correr, el jugador comienza a correr.
 	 * @return Retorna true solamente si el jugador paso de estar caminando a corriendo.
 	 */
-	public boolean Run()
+	public boolean run()
 	{
-		if (IsRunning()) {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN), name);
+		if (isRunning()) {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN)+"\n", name);
 			return false;
 		} else {
-			if (CanRun()) {
-				running = 6;
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_RUN), name);
+			if (canRun()) {
+				running = 7;
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_RUN)+"\n", name);
 				return true;
 			} else {
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN_COOLDOWN), name);
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN_COOLDOWN)+"\n", name);
 				return false;
 			}
 		}
@@ -360,26 +362,26 @@ public class Player {
 	 * Comprueba si el jugador esta corriendo. Si es asi, lo hace caminar y descansar 1 turno (running = 1)
 	 * @return Retorna true solo si el jugado paso de correr a caminar.
 	 */
-	public boolean Walk()
+	public boolean walk()
 	{
-		if (IsRunning()) {
+		if (isRunning()) {
 			running = 1;
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_WALK), name);
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TYPE_WALK)+"\n", name);
 			return true;			
 		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK), name);
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK)+"\n", name);
 			return false;
 		}
 	}
 	/**
-	 * Hace que el jugador descanse disminullendo su contador de Running
+	 * Hace que el jugador descanse disminuyendo su contador de Running
 	 */
-	private void Rest()
+	private void rest()
 	{
 		if (running>0 && running <=2) {
 			running--;
 			if (running ==0) {
-				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_COOLDOWN_END), name);		
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_COOLDOWN_END)+"\n", name);		
 			}
 		}
 		
@@ -387,14 +389,14 @@ public class Player {
 	/**
 	 * reduce el contador running para indicar que el jugador corrio.
 	 */
-	public void Move()
+	private void runningTick()
 	{
-		if (IsRunning()) 
+		if (isRunning()) 
 		{
 			running--;
 		}
 		if (running ==2) {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_RUN_END), name);		
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_RUN_END)+"\n", name);		
 		}
 	}
 	
@@ -404,10 +406,13 @@ public class Player {
 	 */
 	public void turnPassed()
 	{
-		Rest();
-		defensiveEffect.turnPassed();
-		if (defensiveEffect.getRemainingTurns()<=0){
-			defensiveEffect=null;
+		rest();
+		runningTick();
+		if(defensiveEffect!=null){
+			defensiveEffect.turnPassed();
+			if (defensiveEffect.getRemainingTurns()<=0){
+				defensiveEffect=null;
+			}
 		}
 	}
 	

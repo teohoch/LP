@@ -66,17 +66,17 @@ public class Dungeon {
 		try {
 			eReader = new EnemyReader<Enemy>(enemiesPath, Enemy.class);
 		} catch (IOException e) {
-			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();			
 		}
 		List<Enemy> enemiesList = null;
 		try {
 			enemiesList = eReader.getEnemies();
 		} catch (InstantiationException e) {
-			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		}
 		for (Enemy enemy : enemiesList) {
@@ -93,7 +93,7 @@ public class Dungeon {
 		try {
 			iReader = new ItemReader(itemsPath);
 		} catch (IOException e) {
-			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		}
 		List<Item> itemsList = new ArrayList<Item>();
@@ -118,7 +118,7 @@ public class Dungeon {
 		try {
 			bReader = new BoardReader(boardPath);
 		} catch (IOException e) {
-			System.out.print(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_GENERIC_ERROR));
 			e.printStackTrace();
 		}
 		mapSize = bReader.getDimension();
@@ -146,16 +146,16 @@ public class Dungeon {
 		List <Item> oldPositionItems = this.currentLocationItems;
 		for (Item item : dungeonItems) 
 		{
-			if (item.getLocation()== currentPosition) 
+			if (item.getLocation().x== currentPosition.x && item.getLocation().y== currentPosition.y) 
 			{
 				currentPositionItems.add(item);
 			}			
 		}
 		for (Item item : currentPositionItems) {
-			this.currentLocationItems.remove(item);
+			dungeonItems.remove(item);
 		}
 		for (Item item : oldPositionItems) {
-			this.currentLocationItems.add(item);
+			dungeonItems.add(item);
 		}
 		this.currentLocationItems = currentPositionItems;
 	}
@@ -268,10 +268,10 @@ public class Dungeon {
 	 *  1 -> Se movio una casilla.
 	 *  2 -> Se movio dos casillas.
 	 */
-	public int moveCurrentPosition(int direction)
+	public boolean moveCurrentPosition(int direction)
 	{
 		Point oldPosition = currentPosition;
-		Point destination = checkMovement(direction, player.IsRunning());
+		Point destination = checkMovement(direction, player.isRunning());
 		if (destination != currentPosition) {
 			
 			currentPosition = destination;
@@ -279,10 +279,24 @@ public class Dungeon {
 			RetrieveCurrentPositionItems();
 			notVisited.remove(destination);
 			
-			return ((destination.distance(oldPosition)>1) ? 2 : 1);	
+			if ((destination.distance(oldPosition)>1)) {
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE)+"\n",
+						player.getName(),
+						messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_TWO),
+						messenger.getMessage(directionMessage(direction)));
+				return true;
+			} else {
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE)+"\n",
+						player.getName(),
+						messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_ONE),
+						messenger.getMessage(directionMessage(direction)));
+				return true;
+			}
+
 			
 		} else {
-			return -1;
+			System.out.println(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_MOVE));
+			return false;
 		}		
 	}
 	/**
@@ -290,11 +304,11 @@ public class Dungeon {
 	 * @return Retorna una lista con Integer que representan las direcciones en las cuales se puede mover el jugador
 	 * Up = 1; Right	= 2; Down = 3; Left	= 4;
 	 */
-	public List<Integer> posibleMovements()
+	public List<Integer> getPosibleMovements()
 	{
 		List <Integer> posibleMovements = new ArrayList<Integer>();
 		for (int i = 1; i <= 4; i++) {
-			if (checkMovement(i,false)	== currentPosition) {
+			if (checkMovement(i,false)	!= currentPosition) {
 				posibleMovements.add(i);
 			}			
 		}
@@ -303,6 +317,35 @@ public class Dungeon {
 	//TODO Implementar ataque a enemigo
 	//TODO Implementar ataque a jugador
 	//TODO Implementar kill enemigo
+	
+	public MessageCode directionMessage(int direction){
+		MessageCode directionMessage = null;
+		switch (direction) {
+		case 1:
+			directionMessage = MessageCode.MESSAGE_GAME_MOVE_UP;
+			break;
+		case 2:
+			directionMessage = MessageCode.MESSAGE_GAME_MOVE_RIGHT;
+			break;
+		case 3:
+			directionMessage = MessageCode.MESSAGE_GAME_MOVE_DOWN;
+			break;
+		case 4:
+			directionMessage = MessageCode.MESSAGE_GAME_MOVE_LEFT;
+			break;
+		}
+		return directionMessage;
+	}
+	public void playerTurnPassed(){
+		player.turnPassed();
+	}
+	
+	public boolean playerWalk(){
+		return player.walk();
+	}
+	public boolean playerRun() {
+		return player.run();
+	}
 	
 	public List<Enemy> getCurrentLocationEnemies() {
 		return currentLocationEnemies;
@@ -332,6 +375,7 @@ public class Dungeon {
 	{
 		return player.getInventory();
 	}
+
 	
 
 }

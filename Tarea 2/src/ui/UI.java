@@ -37,6 +37,7 @@ public class UI {
 		maze = new Dungeon(enemiesPath, itemsPath, boardPath, playerPath, messenger);
 		currentTurn = 0;
 		winCountUp = 0;
+		running = false;
 	}
 	private void checkWinConditions()
 	{
@@ -59,6 +60,7 @@ public class UI {
 	
 	private void PlayerTurn()
 	{
+		System.out.printf("Inicio turno: %d \n",currentTurn);
 		boolean validCommand = false;
 		Scanner user_input = new Scanner( System.in );
 		while (!validCommand) 
@@ -83,11 +85,41 @@ public class UI {
 				case "inventario":
 					showInventory();
 					validCommand = true;
+					lastCommand = command;
 					break;
 				case "observar":
 					observe();
 					validCommand = true;
-					break;	
+					lastCommand = command;
+					break;
+				case "caminar":
+					if (setPlayerWalk()){
+						lastCommand = command;	
+						validCommand = true;
+					}
+					break;
+				case "correr":
+					if (setPlayerRun()){
+						lastCommand = command;	
+						validCommand = true;
+					}									
+					break;
+				case "avanzar":
+					validCommand = maze.moveCurrentPosition(1);
+					lastCommand = generateMovementLastCommand();
+					break;
+				case "derecha":
+					validCommand = maze.moveCurrentPosition(2);
+					lastCommand = generateMovementLastCommand();
+					break;
+				case "retroceder":
+					validCommand = maze.moveCurrentPosition(3);
+					lastCommand = generateMovementLastCommand();
+					break;
+				case "izquierda":
+					validCommand = maze.moveCurrentPosition(4);
+					lastCommand = generateMovementLastCommand();
+					break;
 				default:
 					System.out.println("default");
 					break;
@@ -95,7 +127,10 @@ public class UI {
 			}
 			
 		}
+		maze.playerTurnPassed();
+		currentTurn++;
 	}
+	
 	private void EnemyTurn()
 	{
 		
@@ -104,7 +139,7 @@ public class UI {
 	public void Start()
 	{
 		keepPlaying = true;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INIT));
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INIT)+"\n");
 		while(keepPlaying)
 		{
 			checkWinConditions();
@@ -115,7 +150,7 @@ public class UI {
 				}
 			}			
 		}
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EXIT), messenger.getMessage(exitMessage));
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EXIT)+"\n", messenger.getMessage(exitMessage));
 		
 	}
 	private void showInventory(){
@@ -124,24 +159,7 @@ public class UI {
 			String formatListItem = "";
 			boolean first = true;
 			for (Item item : inventario) {
-				MessageCode itemType = null;
-				switch (item.getType()) {
-				case 'W':
-					itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_WEAPON;
-					break;
-				case 'A':
-					itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_ARMOR;
-					break;
-				case 'H':
-					itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_HEALING;
-					break;
-				case 'D':
-					itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_DEFENSE;
-					break;
-				case 'O':
-					itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_OFFENSE;
-					break;
-				}
+				MessageCode itemType = itemTypeMessage(item.getType());
 				String temp = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_ITEM),
 						item.getName(),messenger.getMessage(itemType),item.getValue());
 				if (!first) {
@@ -152,9 +170,9 @@ public class UI {
 				}
 				first = false;
 			}
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_CONTENT),maze.getPlayerName(),formatListItem);						
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_CONTENT)+"\n",maze.getPlayerName(),formatListItem);						
 		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_EMPTY), maze.getPlayerName());
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_EMPTY)+"\n", maze.getPlayerName());
 		}
 	}
 	private void observe(){
@@ -164,11 +182,64 @@ public class UI {
 		
 	}
 	private void showPosibleMovement() {
-		// TODO Auto-generated method stub
+		List<Integer> posibleMovements = maze.getPosibleMovements();
+		if (posibleMovements.size()!=0) {
+			String formatMovementList = "";
+			for (Integer integer : posibleMovements) {
+				
+				MessageCode directionMessage = maze.directionMessage(integer);
+				
+				boolean isLast = (integer==posibleMovements.get(posibleMovements.size()-1));
+				boolean isFirst = (integer==posibleMovements.get(0));
+				
+				
+				if (isFirst) {
+					formatMovementList = messenger.getMessage(directionMessage);
+				}else{
+					if (isLast) {
+						formatMovementList = String.format(
+								messenger.getMessage(MessageCode.MESSAGE_GAME_OR_CONCATENATOR), 
+								formatMovementList,messenger.getMessage(directionMessage));										
+					} else {
+						formatMovementList = String.format(
+								messenger.getMessage(MessageCode.MESSAGE_GAME_CONCATENATOR), 
+								formatMovementList,messenger.getMessage(directionMessage));
+					}
+				}
+			}
+			System.out.printf(messenger.getMessage(
+					MessageCode.MESSAGE_GAME_CELL_MOVEMENT_OPTIONS)+"\n", 
+					maze.getPlayerName(),formatMovementList);
+		} else {
+			System.out.printf(messenger.getMessage(
+					MessageCode.MESSAGE_GAME_CELL_MOVEMENT_EMPTY)+"\n", 
+					maze.getPlayerName());
+		}
 		
 	}
 	private void showCurrentItems() {
-		// TODO Auto-generated method stub
+		List<Item> currentItems = maze.getCurrentLocationItems();
+		if (currentItems.size()!=0) {
+			String formatListItem = "";
+			boolean first = true;
+			for (Item item : currentItems) {
+				MessageCode itemType = itemTypeMessage(item.getType());
+				
+				String temp = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_ITEM),
+						item.getName(),messenger.getMessage(itemType),item.getValue());
+				
+				if (!first) {
+					formatListItem = String.format(
+							messenger.getMessage(MessageCode.MESSAGE_GAME_CONCATENATOR), formatListItem,temp);
+				}else{
+					formatListItem = temp;
+				}
+				first = false;
+			}
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ITEM_CONTENT)+"\n",maze.getPlayerName(),formatListItem);						
+		} else {
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ITEM_EMPTY)+"\n");
+		}
 		
 	}
 	private void showCurrentEnemies() {
@@ -186,10 +257,40 @@ public class UI {
 				}
 				first = false;
 			}
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ENEMY_CONTENT), maze.getPlayerName(),formatListEnemy);
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ENEMY_CONTENT)+"\n", maze.getPlayerName(),formatListEnemy);
 		} else {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ENEMY_EMPTY));
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_CELL_ENEMY_EMPTY)+"\n");
 		}
 		
+	}
+	private MessageCode itemTypeMessage(char type){
+		MessageCode itemType = null;
+		switch (type) {
+		case 'W':
+			itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_WEAPON;
+			break;
+		case 'A':
+			itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_ARMOR;
+			break;
+		case 'H':
+			itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_HEALING;
+			break;
+		case 'D':
+			itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_DEFENSE;
+			break;
+		case 'O':
+			itemType = MessageCode.MESSAGE_GAME_INVENTORY_CONTENT_TYPE_OFFENSE;
+			break;
+		}
+		return itemType;
+	}
+	private boolean setPlayerWalk() {
+		return maze.playerWalk();
+	}
+	private boolean setPlayerRun() {
+		return maze.playerRun();
+	}
+	private String generateMovementLastCommand(){
+		return ((running) ? "correr" : "caminar");
 	}
 }

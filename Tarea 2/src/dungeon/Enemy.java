@@ -109,10 +109,10 @@ public class Enemy implements BonusEnemyInterface {
 	 */
 	public void Defend(PlayerDamage damage)
 	{
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_PLAYER),damage.getOrigin(),damage.getWeaponOrigin(),this.getName());
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_PLAYER)+"\n",damage.getOrigin(),damage.getWeaponOrigin(),this.getName());
 		int efectiveDamage = (int) (damage.getValue() * type.getDefenceAbility(damage));
 		currentHP = currentHP - efectiveDamage;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_DAMAGE), this.getName(),efectiveDamage);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_DAMAGE)+"\n", this.getName(),efectiveDamage);
 	}
 	//TODO Implementar IsItDead()
 
@@ -161,14 +161,6 @@ public class Enemy implements BonusEnemyInterface {
 	public char getClassId() {
 		return classId;
 	}
-	
-	public void println()
-	{
-		System.out.println(name +" " 
-				+ type.getName() +" " + baseHP +" " + baseAttackPoints 
-				+" " + XP +" " + location.x +" " + location.y);
-	}
-
 
 	public boolean isAttacked() {
 		return attacked;
