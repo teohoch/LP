@@ -1,5 +1,10 @@
 package utils;
-
+/**
+ * Clase contenedora, construida para guardar los effectos de los items defensivos. 
+ * Incluye el origen, el valor defensivo, el tiempo maximo y el tiempo restante del efecto.
+ * @author teohoch
+ *
+ */
 public class DefensiveEffect {
 	private String origin;
 	private int val;
@@ -17,6 +22,9 @@ public class DefensiveEffect {
 		this.remainingTurns = this.maxTurns;
 		this.val = val;
 	}
+	/**
+	 * Implementa el paso de un turno en el efecto.
+	 */
 	public void turnPassed()
 	{
 		remainingTurns = remainingTurns -1;

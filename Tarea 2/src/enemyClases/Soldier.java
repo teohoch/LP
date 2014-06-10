@@ -22,7 +22,7 @@ public class Soldier implements EnemyClass {
 
 	@Override
 	public int getAtackAbility(String LastCommand) {
-		if(LastCommand.contains("correr"))
+		if(LastCommand.contains("correrMovimiento"))
 		{
 			return 2;
 		}

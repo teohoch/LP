@@ -4,8 +4,8 @@
 package utils;
 
 /**
+ * Daño generado por el Jugador, contiene espacio para conter el nombre del arma u objeto utilizado.
  * @author teohoch
- *Daño generado por el Jugador
  */
 public class PlayerDamage extends Damage {
 
@@ -13,7 +13,7 @@ public class PlayerDamage extends Damage {
 	/**
 	 * Inicializa el objeto
 	 * @param value El valor del daño
-	 * @param type El tipo de Daño. 'd' es daño directo y 'o' daño de objeto
+	 * @param type El tipo de Daño. 'D' es daño directo y 'O' daño de objeto
 	 * @param origin El nombre del origen del daño (nombre jugador/monstruo)
 	 * @param weaponOrigin El nombre del arma/objeto que origino el daño
 	 */

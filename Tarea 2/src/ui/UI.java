@@ -10,7 +10,11 @@ import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
 import dungeon.Dungeon;
 import dungeon.Enemy;
-
+/**
+ * Interfaz del Juego con el Usuario. Implenta el manejo de las entradas, ademas de activar los turnos.
+ * @author teohoch
+ *
+ */
 public class UI {
 	
 	private MessageReader messenger;
@@ -19,13 +23,19 @@ public class UI {
 	boolean keepPlaying;
 	boolean running;
 	
-	private int currentTurn;
 	private int winCountUp;
 	
 	private MessageCode exitMessage;
 	private String lastCommand;
 	
-	
+	/**
+	 * Constructor de clase
+	 * @param enemiesPath Ruta del archivo que contiene a los enemigos
+	 * @param itemsPath Ruta del archivo que contiene a los items del mapa
+	 * @param boardPath Ruta del archivo que contiene los datos del mapa
+	 * @param playerPath Ruta del archivo que contiene los datos del jugador
+	 * @param messengerPath Ruta del archivo que contiene los mensages.
+	 */
 	public UI(String enemiesPath, String itemsPath, String boardPath, String playerPath, String messengerPath)
 	{
 		try {
@@ -35,10 +45,12 @@ public class UI {
 			e.printStackTrace();
 		}
 		maze = new Dungeon(enemiesPath, itemsPath, boardPath, playerPath, messenger);
-		currentTurn = 0;
 		winCountUp = 0;
 		running = false;
 	}
+	/**
+	 * Implementa el chequeo de condiciones de victoria y derrota.
+	 */
 	private void checkWinConditions()
 	{
 		if (maze.getEnemyTotalNumber()==0) {
@@ -57,12 +69,13 @@ public class UI {
 			keepPlaying = false;
 		}
 	}
-	
-	private void PlayerTurn()
+	/**
+	 * Implementa el manejo el Input del usuario, manejando asi el turno de este.
+	 * @param user_input Objeto scanner para recibir el input del Usuario
+	 */
+	private void PlayerTurn(Scanner user_input)
 	{
-		System.out.printf("Inicio turno: %d \n",currentTurn);
 		boolean validCommand = false;
-		Scanner user_input = new Scanner( System.in );
 		while (!validCommand) 
 		{
 			String command;
@@ -97,6 +110,7 @@ public class UI {
 					if (setPlayerWalk()){
 						lastCommand = action;	
 						validCommand = true;
+						running = false;
 					}else{
 						errorCode= String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_WALK), maze.getPlayerName());
 					}
@@ -107,6 +121,7 @@ public class UI {
 						case 1:
 							lastCommand = action;	
 							validCommand = true;
+							running = true;
 							break;
 						case -1:
 							errorCode= String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_RUN), maze.getPlayerName());
@@ -212,14 +227,11 @@ public class UI {
 									lastCommand = action;
 									validCommand = true;
 									atackAllEnemies(status);
-
-								}
-								
+								}								
 							} else {
 								lastCommand = action;
 								validCommand = true;
-							}
-							
+							}							
 						} else {
 							errorCode = String.format(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR_INVENTORY), argument);
 						}
@@ -246,37 +258,37 @@ public class UI {
 				}
 				if (!validCommand) {
 					System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ERROR)+"\n", command,errorCode);				
-				}
-			
-			
+				}	
 		}
-		maze.playerTurnPassed();
-		currentTurn++;
 	}
 	
-	
-	private void EnemyTurn()
-	{
-		
-	}
-
+	/**
+	 * Implementa el inicio del juego, manteniendose en un loop mientras este se ejecuta.
+	 * Continua a menos que el usuario gane, pierda o cierre el juego.
+	 */
 	public void Start()
 	{
 		keepPlaying = true;
+		Scanner user_input = new Scanner(System.in);
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INIT)+"\n");
 		while(keepPlaying)
 		{
+			running = (!maze.playerTurnPassed()&&running);
 			checkWinConditions();
 			if (keepPlaying) {
-				PlayerTurn();
+				PlayerTurn(user_input);
 				if (keepPlaying) {
-					EnemyTurn();
+					maze.EnemyTurn(lastCommand);
 				}
 			}			
 		}
+		user_input.close();
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_EXIT)+"\n", messenger.getMessage(exitMessage));
 		
 	}
+	/**
+	 * Implenta el mostrar los contenidos del inventario con los MessageCodes.
+	 */
 	private void showInventory(){
 		List<Item> inventario = maze.getPlayerInventory();
 		if (inventario.size()!=0) {
@@ -299,12 +311,18 @@ public class UI {
 			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_INVENTORY_EMPTY)+"\n", maze.getPlayerName());
 		}
 	}
+	/**
+	 * Implenta el observar la casilla
+	 */
 	private void observe(){
 		showCurrentEnemies();
 		showCurrentItems();
 		showPosibleMovement();
 		
 	}
+	/**
+	 * Muestra las opciones de movimiento que tiene el usuario, utilisando los MessageCodes.
+	 */
 	private void showPosibleMovement() {
 		List<Integer> posibleMovements = maze.getPosibleMovements();
 		if (posibleMovements.size()!=0) {
@@ -341,6 +359,9 @@ public class UI {
 		}
 		
 	}
+	/**
+	 * Muestra los objetos en la presente casilla, utilisando los MessageCodes.
+	 */
 	private void showCurrentItems() {
 		List<Item> currentItems = maze.getCurrentLocationItems();
 		if (currentItems.size()!=0) {
@@ -366,6 +387,9 @@ public class UI {
 		}
 		
 	}
+	/**
+	 * Muestra los enemigos en la presente casilla, utilisando los MessageCodes.
+	 */
 	private void showCurrentEnemies() {
 		List<Enemy> currentEnemies = maze.getCurrentLocationEnemies();
 		if (currentEnemies.size()!=0) {
@@ -387,6 +411,11 @@ public class UI {
 		}
 		
 	}
+	/**
+	 * Entrega el MessageCode asociado al tipo de objeto
+	 * @param type tipo de objeto
+	 * @return MessageCode asociado
+	 */
 	private MessageCode itemTypeMessage(char type){
 		MessageCode itemType = null;
 		switch (type) {
@@ -408,13 +437,29 @@ public class UI {
 		}
 		return itemType;
 	}
+	/**
+	 * Clase wrapper de Dungeon.playerWalk()
+	 * Hace que el jugador camine, si es que no lo esta haciendo ya.
+	 * @return retorna true si el jugador paso de correr a caminar
+	 */
 	private boolean setPlayerWalk() {
 		return maze.playerWalk();
 	}
 	
+	/**
+	 * Cuando el jugador se mueve (arriba, etc) 
+	 * es utilizado para generar el un lastCommand que indique si el usuario estaba corriendo o caminando. 
+	 * De esta forma si el usuario se movio corriendo, retorna "correrMovimient", mientras que si fue caminando retorna "caminando"
+	 * @return Si el usuario se movio corriendo, retorna "correrMovimient", mientras que si fue caminando retorna "caminando"
+	 */
 	private String generateMovementLastCommand(){
-		return ((running) ? "correr" : "caminar");
+		return ((running) ? "correrMovimiento" : "caminar");
 	}
+	/**
+	 * Comprueba si el en la casilla hay algun enemigo, avisando si no lo hay.
+	 * Si lo hay, ataca a todos los enemigos con el Player damage recivido
+	 * @param status el Player damage a inflinjir en los enemigos.
+	 */
 	private void atackAllEnemies(PlayerDamage status) {
 		List<Enemy> currentEnemies = maze.getCurrentLocationEnemies();
 		if (currentEnemies.size() > 0) {

@@ -1,6 +1,7 @@
 package utils;
 /**
- * Container class for damage. Contains the value and type of it
+ * Clase contenedor para daños. Contiene el valor y tipo del daño, ademas de su procedencia.
+ * Existe 2 tipos de daño "D" o Directo, y por objeto ofensivos o "O" 
  */
 
 /**
@@ -16,7 +17,7 @@ public class Damage {
 	/**
 	 * Inicializa el objeto
 	 * @param value El valor del daño
-	 * @param type El tipo de Daño. 'd' es daño directo y 'o' daño de objeto
+	 * @param type El tipo de Daño. 'D' es daño directo y 'O' daño de objeto
 	 * @param origin El nombre del origen del daño (nombre jugador/monstruo)
 	 */
 	public Damage(int value, char type, String origin)

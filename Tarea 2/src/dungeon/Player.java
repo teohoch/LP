@@ -13,7 +13,12 @@ import utils.Damage;
 import utils.DefensiveEffect;
 import utils.Item;
 import utils.PlayerDamage;
-
+/**
+ * Esta clase implementa todos los metodos y variables 
+ * correspondientes a caracteristicas y acciones del jugador, tales como atacar, defender, utilizar objetos etc.
+ * @author teohoch
+ *
+ */
 public class Player {
 	private String name;
 	
@@ -46,6 +51,7 @@ public class Player {
 		defensiveEffect = null;
 		currentExp = 0;
 		level = 1;
+		NextLevelExp();		
 		maxInventory = 10;
 		running = 0;
 		
@@ -112,7 +118,8 @@ public class Player {
 	 */
 	public void Defend(Damage damage)
 	{
-		int efectiveDamage = (int) (damage.getValue()- defense -defensiveEffect.getVal());
+		int totalDefense = (defensiveEffect!=null) ? (defense -defensiveEffect.getVal()): defense;
+		int efectiveDamage = (int) (damage.getValue()- totalDefense );
 		efectiveDamage = (efectiveDamage > 0) ? efectiveDamage : 0;
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_ENEMY)+"\n",damage.getOrigin(),name,efectiveDamage);
 		currentHP = currentHP - efectiveDamage;
@@ -162,7 +169,7 @@ public class Player {
 	 * <p>	null => si se utilizo un objeto curativo o defensivo
 	 * <p>	paquete damage de tipo "o" => si se utilizo objeto ofensivo
 	 */
-	public PlayerDamage UseItem(String itemName)
+	public PlayerDamage useItem(String itemName)
 	{
 		Item item = findItem(itemName);
 		PlayerDamage returning = null;
@@ -196,7 +203,7 @@ public class Player {
 			break;
 			
 		case 'O':
-			returning = new PlayerDamage(item.getValue(),'o',name,item.getName());
+			returning = new PlayerDamage(item.getValue(),'O',name,item.getName());
 			inventory.remove(item);
 			break;
 		case 'W':
@@ -295,20 +302,24 @@ public class Player {
 	{
 		int nextLevel = level +1;
 		double sum = 0;
-		for (int i = 1; i < (nextLevel-1); i++) {
-			sum = sum + Math.pow(2, (i/7));			
+		for (int i = 1; i <= (nextLevel-1); i++) {
+			sum = sum + Math.pow(2, ((1.0*i)/7));
 		}
 		sum = 9*sum;
 		this.nextLevelExp = (int) Math.round(sum);
 	}
 	/**
 	 * Agrega los puntos de experiencia a los puntos acumulados.
-	 * @param newExp Puntos de experiencia a añadir
+	 * @param enemy Recibe el enemigo al cual se derroto y que otorga los puntos de experiencia.
 	 */
-	public void AddExp(int newExp)
+	public void AddExp(Enemy enemy)
 	{
-		currentExp = currentExp + newExp;
-		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_XP_EARN)+"\n",name,newExp);
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_FAINT)+"\n", enemy.getName());
+		currentExp = currentExp + enemy.getXP();
+		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_XP_EARN)+"\n",name,enemy.getXP());
+		if (CanLevelUp()) {
+			levelUp();
+		}
 	}
 	/**
 	 * Retorna si el jugador puede subir de nivel
@@ -321,28 +332,34 @@ public class Player {
 	
 	/**
 	 * Sube de nivel al jugador. Se le agregan 2 slots a la capacidad maxima del inventario,
-	 *  se le aumenta 10 a los HP Maximos y a los HP actuales.
+	 *  se le aumenta 10 a los HP Maximos y a los HP actuales. 
+	 *  Este metodo es recursivo, de forma de que si el jugador tiene suficien experiencia para subir mas de un nivel, lo suba
 	 */
-	public void levelUp()
+	private void levelUp()
 	{
+		
 		maxInventory = maxInventory + 2;
 		maxHP = maxHP + 10;
 		currentHP = (currentHP+10 <= maxHP) ? currentHP+10 : maxHP;
-		NextLevelExp();
 		level++;
+		
 		System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_LEVEL_UP)+"\n",name,level,maxHP,maxInventory);
+		NextLevelExp();
+		if(CanLevelUp()){
+			levelUp();
+		}
 	}
 	/**
-	 * 
-	 * @return Retorna si el jugador esta corriendo o no
+	 * Retorna si el jugador esta corriendo o no.
+	 * @return Retorna true si el jugador esta corriendo o no.
 	 */
 	public boolean isRunning()
 	{
 		return (running > 2);
 	}
 	/**
-	 * 
-	 * @return Retorna si el jugador puede volver a correr
+	 * Retorna si el jugador puede volver a correr
+	 * @return Retorna true si el jugador puede volver a correr
 	 */
 	private boolean canRun()
 	{
@@ -386,7 +403,7 @@ public class Player {
 	 */
 	private void rest()
 	{
-		if (running>0 && running <=2) {
+		if (running>0 && running <=3) {
 			running--;
 			if (running ==0) {
 				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_COOLDOWN_END)+"\n", name);		
@@ -395,33 +412,38 @@ public class Player {
 		
 	}
 	/**
-	 * reduce el contador running para indicar que el jugador corrio.
+	 * reduce el contador running para indicar que el jugador corrio. Cuando el contador llega a 2 avisa que el jugador dejo de correr
+	 * @return Retorna true solo si el jugador paso de estar corriendo a estar caminando.
 	 */
-	private void runningTick()
+	private boolean runningTick()
 	{
 		if (isRunning()) 
 		{
 			running--;
 		}
 		if (running ==2) {
-			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_RUN_END)+"\n", name);		
+			System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_MOVE_RUN_END)+"\n", name);	
+			return true;
+		}else{
+			return false;
 		}
 	}
 	
 	/**
 	 * Remueve los effectos defensivos que ya no deben afectar al jugador y 
 	 * hace que el jugador descanse
+	 * @return Retorna true cuando el jugador paso de estar corriendo a estar caminando.
 	 */
-	public void turnPassed()
+	public boolean turnPassed()
 	{
-		rest();
-		runningTick();
 		if(defensiveEffect!=null){
 			defensiveEffect.turnPassed();
 			if (defensiveEffect.getRemainingTurns()<=0){
 				defensiveEffect=null;
 			}
 		}
+		rest();
+		return runningTick();
 	}
 	
 	public String getName() {
@@ -451,7 +473,11 @@ public class Player {
 	public Point getInitPosition() {
 		return initPosition;
 	}
-	public boolean IsHeDead() {
+	/**
+	 * Retorna si el jugador esta muerto o no (Hp <= 0)
+	 * @return Si el jugador esta muerto retorna true.
+	 */
+	public boolean isHeDead() {
 		return (currentHP<1);
 	}
 		

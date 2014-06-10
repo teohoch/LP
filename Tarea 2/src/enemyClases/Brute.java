@@ -30,9 +30,9 @@ public class Brute implements EnemyClass {
 	@Override
 	public double getDefenceAbility(Damage damage) {
 		switch (damage.getType()) {
-		case 'd':
+		case 'D':
 			return 0.5;
-		case 'o':
+		case 'O':
 			return 2;
 		default:
 			return 1;

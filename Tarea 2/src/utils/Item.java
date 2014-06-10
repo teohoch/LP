@@ -1,7 +1,11 @@
 package utils;
 
 import java.awt.Point;
-
+/**
+ * Clase contenedora para Objetos, con nombre tipo, valor de efecto y localizacion dentro del mapa.
+ * @author teohoch
+ *
+ */
 public class Item
 {
 	/**
@@ -23,13 +27,7 @@ public class Item
 	
 	public void setLocation(Point location) {
 		this.location = location;
-	}
-
-	public void println(){
-		System.out.println(name +" "+ type +" "+ location.x +" "+ location.y +" "+ value);
-
-	}
-	
+	}	
 	/**
 	 * @return the name
 	 */

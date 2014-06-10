@@ -14,7 +14,7 @@ import enemyClases.Soldier;
 import enemyClases.Warlock;
 
 /**
- * Implements the Bonus Enemy Interface, with support for different classes of enemies.
+ * Implementa la Interfaz Bonus Enemy, con soporte para 4 clases de enemigos.
  */
 
 /**
@@ -169,12 +169,18 @@ public class Enemy implements BonusEnemyInterface {
 	public char getClassId() {
 		return classId;
 	}
-
+	/**
+	 * 
+	 * @return true si fue atacado
+	 */
 	public boolean isAttacked() {
 		return attacked;
 	}
 
-
+	/**
+	 * Setea si el enemigo fue atacado o no.
+	 * @param attacked
+	 */
 	public void setAttacked(boolean attacked) {
 		this.attacked = attacked;
 	}

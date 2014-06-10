@@ -11,9 +11,15 @@ import cl.utfsm.inf.lp.sem12014.mud.input.EnemyReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.ItemReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader;
 import cl.utfsm.inf.lp.sem12014.mud.input.MessageReader.MessageCode;
+import utils.Damage;
 import utils.Item;
 import utils.PlayerDamage;
-
+/**
+ * Clase que contiene a los enemigos, jugador y elementos dentro del juego.
+ *  Maneja las interacciones entre estos, tales como ataques entre ellos, o movimientos del jugador, entre otros
+ * @author teohoch
+ *
+ */
 public class Dungeon {
 	private MessageReader messenger;
 	private Point currentPosition;
@@ -34,7 +40,14 @@ public class Dungeon {
 	private List <Point> notVisited;
 	
 	private Player player;
-	
+	/**
+	 * Constructor de la clase
+	 * @param enemiesPath Ruta del archivo que contiene a los enemigos
+	 * @param itemsPath Ruta del archivo que contiene a los items del mapa
+	 * @param boardPath Ruta del archivo que contiene los datos del mapa
+	 * @param playerPath Ruta del archivo que contiene los datos del jugador
+	 * @param messenger Objeto MessageReader utilizado para generar los mensages para el usuario.
+	 */
 	public Dungeon(String enemiesPath, String itemsPath, String boardPath, String playerPath, MessageReader messenger)
 	{
 		this.enemiesPath = enemiesPath;
@@ -53,7 +66,7 @@ public class Dungeon {
 		
 		LoadItems();
 		currentLocationItems = new ArrayList<Item> ();
-		RetrieveCurrentPositionItems();
+		retrieveCurrentPositionItems();
 		LoadMap();
 		
 		
@@ -132,6 +145,7 @@ public class Dungeon {
 				notVisited.add(new Point(x,y));
 			}			
 		}
+		notVisited.remove(currentPosition);
 		for (Point point : map) {
 			if (notVisited.contains(point)) {
 				notVisited.remove(point);				
@@ -141,7 +155,7 @@ public class Dungeon {
 	/**
 	 * Selecciona los items que estan en la casilla actual, los carga y devuelve los de la casilla anterior
 	 */
-	private void RetrieveCurrentPositionItems()
+	private void retrieveCurrentPositionItems()
 	{
 		List <Item> currentPositionItems = new ArrayList<Item>();
 		List <Item> oldPositionItems = this.currentLocationItems;
@@ -276,7 +290,7 @@ public class Dungeon {
 			
 			currentPosition = destination;
 			retrieveCurrentPositionEnemies();
-			RetrieveCurrentPositionItems();
+			retrieveCurrentPositionItems();
 			notVisited.remove(destination);
 			
 			if ((destination.distance(oldPosition)>1)) {
@@ -312,11 +326,16 @@ public class Dungeon {
 			}			
 		}
 		return posibleMovements;
-	}
-	//TODO Implementar ataque a enemigo
-	//TODO Implementar ataque a jugador
-	//TODO Implementar kill enemigo
-	
+	}	
+	/**
+	 * A partir de una direccion, entrega el MessageCode asociado.
+	 * @param direction entero en la siguiente forma:
+	 * <p> Avanzar = 1
+	 * <p> Derecha = 2
+	 * <p> Abajo = 3
+	 * <p> Izquierda = 4;
+	 * @return Retorna el MessageCode asociado a la direccion.
+	 */
 	public MessageCode directionMessage(int direction){
 		MessageCode directionMessage = null;
 		switch (direction) {
@@ -335,13 +354,27 @@ public class Dungeon {
 		}
 		return directionMessage;
 	}
-	public void playerTurnPassed(){
-		player.turnPassed();
+	/**
+	 * Clase wrapper de Player.turnPassed()
+	 * Efectua los cambios nesesarios para cuando pasa un turno
+	 * @return Retorna true cuando el jugador paso de estar corriendo a estar caminando.
+	 */
+	public boolean playerTurnPassed(){
+		return player.turnPassed();
 	}
-	
+	/**
+	 * Clase wrapper de Player.walk()
+	 * Hace que el jugador camine, si no lo esta haciendo ya.
+	 * @return Retorna true solo si el jugado paso de correr a caminar.
+	 */
 	public boolean playerWalk(){
 		return player.walk();
 	}
+	/**
+	 * Clase wrapper de Player.run()
+	 * Hace que el jugador corra, si no lo esta haciendo ya o esta muy cansado.
+	 * @return Retorna Retorna -1 si el jugador ya estaba corriendo, -2 si todavia debe descansar y 1 si paso de caminar a correr.
+	 */
 	public int playerRun() {
 		return player.run();
 	}
@@ -353,11 +386,18 @@ public class Dungeon {
 	public List<Item> getCurrentLocationItems() {
 		return currentLocationItems;
 	}
-	
+	/**
+	 * Entrega el numero de enemigos restantes en el tablero
+	 * @return numero de enemigos restantes en el tablero
+	 */
 	public int getEnemyTotalNumber()
 	{
 		return  (currentLocationEnemies.size()+ dungeonEnemies.size());
 	}
+	/**
+	 * Retorna el numero de casillas no visitadas
+	 * @return numero de casillas no visitadas
+	 */
 	public int getNumberOfNotVisitedTiles()
 	{
 		return notVisited.size();
@@ -366,26 +406,66 @@ public class Dungeon {
 	{
 		return player.getName();
 	}
+	/**
+	 * Clase wrapper para Player.isHeDead()
+	 * Nos dice si el jugador esta muerto
+	 * @return true si el jugador esta muerto
+	 */
 	public boolean isPlayerDead()
 	{
-		return player.IsHeDead();
+		return player.isHeDead();
 	}
 	public List<Item> getPlayerInventory()
 	{
 		return player.getInventory();
 	}
+	/**
+	 * Clase wrapper de Player.inInventory(String a)
+	 * Revisa si el objeto esta en el inventario
+	 * @param string Nombre del objeto a buscar.
+	 * @return true si el objeto se encuentra en el inventario del jugador
+	 */
 	public boolean isInPlayerInventory(String string) {
 		return player.inInventory(string);
 	}
-	public void attackAllCurrentEnemies(PlayerDamage status) {
+	/**
+	 * Metodo implementa un ataque de area, tal como el uso de un objeto ofensivo, donde todos los enemigos de la casilla son afectados
+	 * @param damage Daño a efectuar sobre los enemigos
+	 */
+	public void attackAllCurrentEnemies(PlayerDamage damage) {
+		List<Enemy> deadEnemies = new ArrayList<Enemy>();
 		for (Enemy enemy : currentLocationEnemies) {
-			enemy.Defend(status);
+			enemy.Defend(damage);
+			if (enemy.isDead()) {
+				deadEnemies.add(enemy);
+				player.AddExp(enemy);
+			}
+		}
+		for (Enemy enemy : deadEnemies) {
+			killEnemy(enemy);
 		}
 		
 	}
+	/**
+	 * Clase wrapper de Player.useItem(string)
+	 * Permite el uso de un objeto dentro del inventario
+	 * @param string Nombre del objeto a utilizar
+	 * @return Si el item no se puede usar, retorna un paquete damage de tipo 'e' y valor 
+	 * <p>	-1 => si el item no es del tipo correcto (defensivo, ofensivo, curativo),
+	 * <p>	-2 => si la salud esta al maximo y se uso un item curativo,
+	 * <p>	-3 => si ya se encuentra bajo los efectos de un objeto defensivo y se utilizo un elemento defensivo
+	 * <p>
+	 * <p>Si la accion se completo con exito, retorna
+	 * <p>	null => si se utilizo un objeto curativo o defensivo
+	 * <p>	paquete damage de tipo "o" => si se utilizo objeto ofensivo
+	 */
 	public PlayerDamage usePlayerItem(String string) {
-		return player.UseItem(string);
+		return player.useItem(string);
 	}
+	/**
+	 * Permite que el usuario descarte un objeto de su inventario, el cual queda en la casilla actual.
+	 * @param argument Nombre del objeto a descartar
+	 */
 	public void playerDropItem(String argument) {
 		Item item = player.dropItem(argument);
 		item.setLocation(currentPosition);
@@ -406,6 +486,11 @@ public class Dungeon {
 		}
 		return returning;
 	}
+	/**
+	 * Permite que el usuario tome un objeto desde la casilla actual al inventario
+	 * @param argument nombre del objeto a recoger.
+	 * @return true si se realiza con exito
+	 */
 	public boolean playerPickItem(String argument) {
 		Item item = findItem(argument);
 		boolean state = player.addItemToInventory(item);
@@ -417,6 +502,11 @@ public class Dungeon {
 		return state;
 		
 	}
+	/**
+	 * Permite buscar un objeto en la casilla actual
+	 * @param argument nombre del objeto
+	 * @return	el objeto en si
+	 */
 	private Item findItem(String argument) {
 		Item returning = null;
 		for (Item item : currentLocationItems) {
@@ -427,9 +517,20 @@ public class Dungeon {
 		}
 		return returning;
 	}
+	/**
+	 * Clase wrapper de Player.equip(string)
+	 * Permite que el usuario equipe armaduras y armas.
+	 * @param argument nombre del objeto a equipar
+	 * @return si la operacion fue exitosa retorna true
+	 */
 	public boolean playerEquip(String argument) {
 		return player.Equip(argument);
 	}
+	/**
+	 * Permite si cierto enemigo existe en la casilla actual
+	 * @param argument nombre del enemigo
+	 * @return	true si el enemigo esta en la casilla actual
+	 */
 	public boolean enemyInCurrent(String argument) {
 		boolean returning = false;
 		for (Enemy enemy : currentLocationEnemies) {
@@ -440,6 +541,11 @@ public class Dungeon {
 		}
 		return returning;
 	}
+	/**
+	 * Permite buscar un enemigo en la casilla actual
+	 * @param argument nombre del enemigo
+	 * @return	el enemigo en si
+	 */
 	public Enemy findEnemy(String argument){
 		Enemy returning = null;
 		for (Enemy enemy : currentLocationEnemies) {
@@ -450,19 +556,41 @@ public class Dungeon {
 		}
 		return returning;
 	}
+	/**
+	 * Implementa el ataque del jugador a UN enemigo dentro de la casilla presente
+	 * @param argument nombre del enemigo
+	 */
 	public void playerAtackEnemy(String argument) {
 		PlayerDamage damage = player.Attack();
 		Enemy enemy = findEnemy(argument);
 		enemy.Defend(damage);
 		if (enemy.isDead()) {
-			currentLocationEnemies.remove(enemy);
-			player.AddExp(enemy.getXP());
-			if (player.CanLevelUp()) {
-				player.levelUp();
+			killEnemy(enemy);
+			player.AddExp(enemy);
+		}		
+	}
+	/**
+	 * Remueve al enemigo de la casilla, puesto que esta muerto
+	 * @param enemy El enemigo en si
+	 */
+	private void killEnemy(Enemy enemy){
+		currentLocationEnemies.remove(enemy);		
+	}
+	/**
+	 * Implenta el turno de los enemigos, permitiendo atacar al jugador segun corresponda
+	 * @param lastCommand ultimo comando ingresado por el usuario.
+	 */
+	public void EnemyTurn(String lastCommand) {
+		for (Enemy enemy : currentLocationEnemies) {
+			if (enemy.isAttacked()||lastCommand.equals("correrMovimiento")||lastCommand.equals("tomar")) {
+				Damage damage = enemy.Attack(lastCommand);
+				player.Defend(damage);
 			}
-		}
-		
-		
+			if(player.isHeDead()){
+				System.out.printf(messenger.getMessage(MessageCode.MESSAGE_GAME_ATTACK_FAINT)+"\n", player.getName());
+				break;
+			}
+		}		
 	}
 
 	

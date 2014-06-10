@@ -3,7 +3,7 @@ import utils.Damage;
 
 
 /**
- * Interface for Different classes of enemies.
+ * Interface para las clases de enemigos.
  * @author teohoch
  *
  */
