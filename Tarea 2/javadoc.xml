@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="javadoc">
-    <target name="javadoc">
-        <javadoc access="public" author="true" classpath="/home/teohoch/Downloads/Tarea2LPMUD_API.jar" destdir="doc" doctitle="Tarea 2 Documentation" nodeprecated="false" nodeprecatedlist="false" noindex="false" nonavbar="false" notree="false" source="1.7" sourcefiles="src/EnemyClass.java,src/Enemies.java" sourcepath="src" splitindex="true" use="true" version="true">
-            <link href="file:/home/teohoch/workspace/Tarea%202/doc/"/>
-        </javadoc>
-    </target>
-</project>

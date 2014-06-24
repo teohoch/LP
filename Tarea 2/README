@@ -6,9 +6,117 @@ Tarea 2 Lenguages de Programacion ILI-253
 Teodoro Hochfarber
 Rol: 201193039-9
 
+Compilacion y Ejecucion de la Tarea:
+----------------------------------------------------------------------
+
+	Se adjunta dentro de la tarea un archivo "build.xml" el cual 
+	contiene las instrucciones nesesarias para compilar y ejecutar
+	la tarea. Este requiere tener instalado ant dentro del 
+	sistema. Tiene los siguientes targets:
+	
+		init:	Inicializa los directorios nesesarios para 
+			compilar y ejecutar la tarea.
+
+		clean:	Borra las carpetas y archivos generados por 
+			compilacion de la tarea.
+		
+		build: 	Compila la tarea a archivos .class, los cuales
+			son guardados dentro de la carpeta bin, creada
+			por el script.
+
+		Tarea2: Ejecuta la tarea.
+
+		all:	Este target inicializa, compila, ejecuta y
+			limpia el directorio de la tarea.
+	
+	Por default, se ejecuta el target all, de forma que sea limpio
+	y simple para el ayudante la correcion.
+
 Supuestos:
+----------------------------------------------------------------------
 
-	*	Los archivos de entrada se conformaran siempre a las pautas 
-		señaladas en el enunciado de la tarea.
+	*	Los archivos de entrada se conformaran siempre a las 
+		pautas señaladas en el enunciado de la tarea.
+	*	De existir multiples enemigos atacando, y si el 
+		jugador muere antes de que todos los enemigos ataquen,
+		 el turno enemigo se dara terminado.
 
-Descripcion del Algoritmo:
+Descripcion de Clases:
+----------------------------------------------------------------------
+Existen 5 clases principales, ademas de la clase main
+(llamada Zorg en esta tarea):
+
+	UI:	Esta representa la interaz del juego con el usuario,
+		la implementacion de manejo de entradas de usuario, y 
+		la instanciacion de la clase Dungeon y MessageReader 
+		para el manejo de mensages.
+
+	Dungeon:Esta representa el tablero de juego, y maneja las 
+		las interacciones entre el jugador, los enemigos,
+		el mapa y los items en este. Se encarga ademas de 
+		cargar desde archivo los datos requeridos.
+
+	Player:	Esta representa al jugador, implementado sus acciones 
+		y atributos, tales como atacar, defender y usar items,
+		entre otros.
+
+	Enemy:	Esta representa a los enemigos dentro del juego, con 
+		sus acciones y atributos correspondientes. Esta clase 
+		implementa la interfaz BonusEnemyInterface, lo que le
+		permite manejar enemigos de distintas clases, con 
+		habilidades de ataque y defensivas.
+
+	Items: 	Esta representa los items dentro del juego, tales como
+		 pociones y armaduras. Es una clase simple, diseñada 
+		solo para contener la informacion.
+
+Ademas de estas se implementaron varias clases utilitarias para el 
+manejo de informacion entre clases. 
+
+
+	Damage: 
+		Esta clase representa el daño creado por los enemigos
+		y jugador, lo que permite la comunicacion entre el 
+		atacante y el atacado.
+
+	PlayerDamage: 	
+		Esta clase extiende a Damage, incluyendo un campo 
+		extra para indicar el arma/item desde que origina el 
+		daño.
+
+	DefensiveEffect:
+		Esta clase es un contenedor para los efectos de 
+		defensa de los objetos defensivos, permitiendo su 
+		facil manejo como atributo del jugador.
+
+Bonus:
+----------------------------------------------------------------------
+
+	GameMaster:
+		Para la implementacion de este bonus, se creo una 
+		interfaz EnemyClass, y 4 implentaciones de esta, 
+		Soldier, Guardian, Brute y Warlock. Estas permiten al 
+		sistema asignar clases a los enemigos, permitiendo la 
+		modificacion de los valores base, y agregando 
+		habilidades de ataque y defensa. Dentro de los metodos
+		de ataque y defensa de Enemy se puede observar que 
+		estas habilidades son consideradas al momento de 
+		calcular el daño al Jugador y a los enemigos.
+
+	Thorought:
+		Se incluye dentro del archivo comprimido la 
+		documentacion completa del programa de acuerdo al 
+		formato Javadoc. Esta se encuentra en la carpeta doc,
+		y se recomienda abrirla a traves del archivo 
+		index.html
+
+
+
+
+
+
+
+
+
+
+

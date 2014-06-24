@@ -7,40 +7,11 @@
 #include "matrix.h"
 #include "operations.h"
 #include <stdio.h>
-#include <ctype.h>
 #include <stdlib.h>
 
-void printMatrix(matrix * a)
-{
-	int i,j;
 
-	for (i = 0; i < a->dim; i++)
-	{
-		for (j = 0; j < a->dim; j++)
-		{
-			printf("%f   ",(a->data[i][j]));
-		}
-		printf("\n");
-	}
 
-}
 
-int findMatrix(matrix **matrices, int nMatrix ,char letra)
-{
-	int lugar = -1;
-	int i;
-	for (i=0;i<nMatrix;i++)
-	{
-		char fromMatrix = tolower(matrices[i]->id);
-		char fromLetra = tolower(letra);
-		if(fromMatrix == fromLetra)
-		{
-			lugar = i;
-			break;
-		}
-	}
-	return lugar;
-}
 
 void createMatrix(int size, char name, matrix * novo)
 {
@@ -59,6 +30,8 @@ void createMatrix(int size, char name, matrix * novo)
 		novo->dim = size;
 		novo->id = name;
 }
+
+
 
 matrix * add(matrix * a,matrix * b)
 {

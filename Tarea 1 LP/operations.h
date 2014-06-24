@@ -12,19 +12,9 @@ matrix * mult(matrix * a,matrix * b);
 //FUNCION ADD()
 /* Retorna el resultado de la suma de las matrices indicadas por parametro.
  */
-
 matrix * add(matrix * a,matrix * b);
 
 typedef matrix * (*ptr_func)(matrix *, matrix *);
 
-void printMatrix(matrix * a);
-
-void createMatrix(int size, char name,matrix * novo);
-
-int findMatrix(matrix * *matrices,int nMatrix, char letra);
-
-
-
 #endif
-
 
