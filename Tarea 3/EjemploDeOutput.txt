@@ -1,0 +1,33 @@
+1 ?- goles(brazil,chile,G).
+G = 11.
+
+2 ?- goles(chile,argentina,G).
+G = 1.
+
+3 ?- goles(argentina,brazil,G).
+G = 3.
+
+4 ?- victorias(chile,spain,V).
+V = 0.
+
+5 ?- victorias(uruguay,argentina,V).
+V = 1.
+
+6 ?- victorias(england,italy,V).
+V = 0.
+
+7 ?- perdedor(netherlands,final,C).
+C = 3.
+
+8 ?- perdedor(chile,octavos,C).
+C = 2.
+
+9 ?- perdedor(brazil,final,C).
+C = 1.
+
+10 ?- ganadores(L,M).
+L = [italy, brazil, west_germany, argentina, england, uruguay, spain, france],
+M = brazil.
+
+11 ?- campeon(X).
+X = brazil.
