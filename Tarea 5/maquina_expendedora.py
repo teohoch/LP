@@ -25,6 +25,7 @@ class Money:
 
 
     def calculateValue(self):
+        #calcula el valor total de las monedas
         self.value = 0
         if (isinstance(self.currency,int)):
             self.value = self.currency
@@ -43,32 +44,38 @@ class Machine:
             self.forSale.append(food)
 
     def findItem(self,itemName):
+        #Busca el item en cuestion
         for item in self.forSale:
             if (item.name == itemName):
                 return item
 
     def calculateChange(self,inputMoney,itemName):
+        #Calcula el vuelto
         item = self.findItem(itemName)
         return inputMoney - item.price.value
 
     def messages(self, exchange, productName):
+        #Genera los mensages de acuerdo al valor del vuelto
         if (exchange<0):
-            self.log.write("El dinero no alcanza para "+productName+"\n")
+            self.log.write("El dinero no alcanza para "+productName+".\n")
         elif (exchange>0):
-            self.log.write("Compra de "+productName+" con vuelto igual a " + str(exchange) + "\n")
+            self.log.write("Compra de "+productName+" con vuelto igual a " + str(exchange) + ".\n")
         else:
-            self.log.write("Compra exacta de "+productName+"\n")
+            self.log.write("Compra exacta de "+productName+".\n")
 
     def transaction(self, currencyValue, productName):
+        #ejecuta una transaccion, es decir calcula el vuelto y imprime el mensage correspondiente
         exchange = self.calculateChange(currencyValue,productName)
         self.messages(exchange,productName)
 
     def executeTransactions(self):
+        #ejecuta todas las transacciones cargadas
         for productName, currency in self.transactions:
             inputMoney = Money(currency)
             self.transaction(inputMoney.calculateValue(),productName)
 
     def loadTransactions(self,inputPath):
+        #carga las transacciones desde el archivo de ingreso
         r = open(inputPath,'r')
         self.transactions = []
 
@@ -87,13 +94,14 @@ class Machine:
             second = not second
 
 
+inputPath = "maquina_expendedora.input"
+outputPath = "maquina_expendedora2.output"
 
+if (len(sys.argv)>1):
+    inputPath = sys.argv[1]
 
+log = open(outputPath,'w')
 
-
-log = sys.stdout
-inputpath = "maquina_expendedora.input"
-output = "maquina_expendedora.output"
 machine = Machine(items,log)
-machine.loadTransactions(inputpath)
+machine.loadTransactions(inputPath)
 machine.executeTransactions()

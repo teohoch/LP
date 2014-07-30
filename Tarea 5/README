@@ -1,0 +1,68 @@
+README
+
+Tarea 5 Lenguages de Programacion ILI-253
+"!omar le ravlas A"[::-1]
+
+Teodoro Hochfarber
+Rol: 201193039-9
+
+* Acrostico
+
+    Supuestos realizados
+
+        *Que de haber multiples palabras que comienzen con la misma inicial, el
+         uso de estas sera rotatorio dentro de una misma palabra, siguiendo el
+         orden dentro del archivo de entrada. En otras palabras, si se tienen
+         las palabras [platano, papap, avion], el acrostico formado sera
+         [platano, avion, papa, avion, platano].
+
+        *Se permite la repeticion de palabras para formar el acrostico.
+
+        *Si no se especifica un archivo de entrada, se utilizara
+         'acrostico.input'
+
+    Estrategia
+
+        *En primer lugar se genero un diccionario que tuviese como llaves las
+         iniciales de las palabras, y como valor, un lista de las palabras
+         ingresadas que comienzan con esa letra
+
+        *Posteriormente se revisa cuales de las palabras ingresadas es posible
+         crear con las iniciales. Una vez que se tiene esta lista de palabras,
+         se generea un composicion para cada palabra. Una composicion es un
+         lista de palabras que con sus iniciales generan la palabra en cuestion
+
+        *Finalmente, se toman las composiciones y se imprimen a un archivo
+         segun el formato requerido
+
+* Maquina expendedora
+
+    Supuestos
+
+        *Se presupone que en el archivo de entrada no se listaran productos
+         que la maquina expendedora no tenga en su inventario.
+
+        *Si no se especifica un archivo de entrada, se utilizara
+         'maquina_expendedora.input'
+
+    Estrategia
+
+        *Se comienza cargando los alimentos a la maquina (clase Food), cada
+         cual con un nombre y un campo de dinero. Se continua cargando todas
+         las transacciones a realizar desde el archivo de entrada, para
+         posteriormente ejecutar esta transaccion.
+
+        *La ejecucion de una transaccion consiste en primero transformar las
+         "monedas" a un valor numerico. Esto se realiza a traves de la clase
+         Money. Posteriormente, se busca el producto elegido. Se compara el
+         valor de este contra el valor del dinero ingresado y se calcula el
+         vuelto correspondiente. Dependiendo de los valores que puede tomar el
+         vuelo se muestran distintos mensages, siguiendo el patron descrito a
+         continuacion:
+
+            vuelto > 0  "El dinero no alcanza para "+NombreProducto+".\n"
+            vuelto = 0  "El dinero no alcanza para "+NombreProducto+".\n"
+            vuelto < 0  "Compra de "+NombreProducto+" con vuelto igual a "+
+                         vuelto + ".\n"
+
+        *La ejecucion de las transacciones esta a cargo de la clase Machine
